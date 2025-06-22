@@ -1,0 +1,48 @@
+.chatCard {
+  padding: 12px;
+  cursor: pointer;
+  border: 1px solid rgba(0, 255, 0, 0.2);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  margin: 0;
+}
+
+.chatCard:hover {
+  background-color: rgba(0, 255, 0, 0.05) !important;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dropdownMenuContent {
+  min-width: 180px;
+  background-color: rgba(0, 0, 0, 0.9);
+  border-radius: 6px;
+  padding: 5px;
+  border: 1px solid rgba(0, 255, 0, 0.1);
+}
+
+.dropdownMenuItem {
+  border-radius: 4px;
+  margin: 2px;
+}
+
+.dropdownMenuItem:focus {
+  outline: none;
+  background-color: rgba(0, 255, 0, 0.1);
+} 

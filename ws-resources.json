@@ -1,0 +1,10 @@
+{
+  "routes": {
+    "/home": "/index.html",
+    "/accounts": "/index.html",
+    "/chats": "/index.html",
+    "/create-profile": "/index.html",
+    "/import-profile": "/index.html",
+    "/chats/*": "/index.html"
+  }
+}
