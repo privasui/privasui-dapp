@@ -1,0 +1,64 @@
+{
+  "hash": "e5211927",
+  "configHash": "f50bd545",
+  "lockfileHash": "8eb3ef2f",
+  "browserHash": "27c352a0",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "a8071ad1",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "5086e45a",
+      "needsInterop": true
+    },
+    "react-router": {
+      "src": "../../node_modules/react-router/dist/development/index.mjs",
+      "file": "react-router.js",
+      "fileHash": "dbc59fe0",
+      "needsInterop": false
+    },
+    "@tanstack/react-query": {
+      "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "aaf3f454",
+      "needsInterop": false
+    },
+    "@mysten/dapp-kit": {
+      "src": "../../node_modules/@mysten/dapp-kit/dist/esm/index.js",
+      "file": "@mysten_dapp-kit.js",
+      "fileHash": "20efea18",
+      "needsInterop": false
+    },
+    "@radix-ui/themes": {
+      "src": "../../node_modules/@radix-ui/themes/dist/esm/index.js",
+      "file": "@radix-ui_themes.js",
+      "fileHash": "e7df0814",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "dd195139",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-YCQOPZCJ": {
+      "file": "chunk-YCQOPZCJ.js"
+    },
+    "chunk-V7BTCHB6": {
+      "file": "chunk-V7BTCHB6.js"
+    },
+    "chunk-D55ZLV3V": {
+      "file": "chunk-D55ZLV3V.js"
+    },
+    "chunk-5Q4NG4DT": {
+      "file": "chunk-5Q4NG4DT.js"
+    }
+  }
+}
