@@ -150,4 +150,63 @@ export const sendSuiPaymentTx = (
   return tx;
 }
 
+// Create transaction object for PINS name registration (without executing it)
+export const createNameRegistrationTx = async (
+  client: SuiClient,
+  name: string,
+  lifetime: boolean,
+  price: number,
+): Promise<Transaction> => {
+  const tx = new Transaction();
+
+  console.log("🔍 AVAR:: [createNameRegistrationTx] TX_GAS_BUDGET", TX_GAS_BUDGET_DEFAULT);
+
+  tx.setGasBudget(price + TX_GAS_BUDGET_DEFAULT);
+
+  const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(BigInt(price))]);
+  
+  tx.setGasBudget(TX_GAS_BUDGET_DEFAULT);
+
+  // fetch the pi shared object with the initial shared version
+  const piSharedObject = await fetchPiSharedObject(client);
+
+  tx.moveCall({
+    target: `${PRIVASUI_PACKAGE_ID_LATEST}::app::register_piname`,
+    arguments: [
+      tx.object('0x6'),
+      tx.sharedObjectRef(piSharedObject),
+      tx.object(paymentCoin),
+      tx.pure.string(name),
+      tx.pure.bool(lifetime),
+    ]
+  });
+
+  return tx;
+}
+
+// Create transaction object for NFT transfer (without executing it)
+export const createNftTransferTx = (
+  recipient: string,
+  objectId: string,
+): Transaction => {
+  // Validate inputs
+  if (!recipient.startsWith('0x')) {
+    throw new Error('Invalid recipient address format');
+  }
+  
+  if (!objectId.startsWith('0x')) {
+    throw new Error('Invalid object ID format');
+  }
+
+  const tx = new Transaction();
+  
+  // Set gas budget
+  tx.setGasBudget(TX_GAS_BUDGET_DEFAULT);
+  
+  // Transfer the NFT object to the recipient
+  tx.transferObjects([tx.object(objectId)], tx.pure.address(recipient));
+  
+  return tx;
+}
+
 

@@ -86,6 +86,14 @@ export const TypeInput: React.FC<TypeInputProps> = forwardRef((props, ref) => {
                 setIsFocused(false);
                 inputProps?.onBlur?.(...args);
               },
+              autoComplete: "off",
+              autoCorrect: "off",
+              autoCapitalize: "off",
+              spellCheck: false,
+              "data-lpignore": "true",
+              "data-form-type": "other",
+              "data-1p-ignore": "",
+              "data-protonpass-ignore": "true",
             }}
             ref={(inputProps?.ref || ref) as LegacyRef<HTMLInputElement>}
             className={cn(
@@ -106,11 +114,14 @@ export const TypeInput: React.FC<TypeInputProps> = forwardRef((props, ref) => {
         )}
       </div>
 
-      {infoText && (
-        <p className={cn("text-sm text-red-500 py-2", infoClassname)}>
-          {infoText}
-        </p>
-      )}
+      {/* Info text container with fixed height to prevent layout shifts */}
+      <div className="pt-2">
+        {infoText && (
+          <p className={cn("text-sm text-red-500", infoClassname)}>
+            {infoText}
+          </p>
+        )}
+      </div>
     </div>
   );
 });

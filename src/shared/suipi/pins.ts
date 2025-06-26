@@ -9,6 +9,39 @@ export const isNameAvailable = async (suiClient: SuiClient, name: string): Promi
     return !piNSData;
 }
 
+export const getNameAddress = async (suiClient: SuiClient, name: string): Promise<any> => {
+  const {id: nameRegistryObjId } = await getPackageItemRegistry(suiClient, PackagesEnum.PINS, "name::NameRegistry");
+  let piNSData = await getItemRegistryDataWithStringKey(suiClient, nameRegistryObjId, name);
+  
+  if (!piNSData) {
+    return null;
+  }
+
+  return piNSData.value.fields.address;
+}
+
+export const getNameExpiration = async (suiClient: SuiClient, name: string): Promise<string | null> => {
+  try {
+    const {id: nameRegistryObjId } = await getPackageItemRegistry(suiClient, PackagesEnum.PINS, "name::NameRegistry");
+    let piNSData = await getItemRegistryDataWithStringKey(suiClient, nameRegistryObjId, name);
+    
+    if (!piNSData) {
+      return null;
+    }
+    
+    // Check if expiration exists in the data
+    if (piNSData.value.fields.expiration) {
+      return piNSData.value.fields.expiration;
+    }
+    
+    // If no expiration field, it's a lifetime registration
+    return null;
+  } catch (error) {
+    console.error("Error getting name expiration:", error);
+    return null;
+  }
+}
+
 export const hasAddressName = async (suiClient: SuiClient, address: string): Promise<any> => {
     const {id: addressRegistryObjId } = await getPackageItemRegistry(suiClient, PackagesEnum.PINS, "address::AddressRegistry");
     return hasItemRegistryDataWithStringKey(suiClient, addressRegistryObjId, address);

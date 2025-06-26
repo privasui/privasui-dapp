@@ -6,4 +6,5 @@ export * from "./privasui"
 export * from "./balance"
 export * from "./tx"
 export * from "./display"
+export * from "./pricing"
 

@@ -364,17 +364,17 @@ export const HomePage = () => {
     <>
       <PageContainer fullWidth>
         <OrbitGradients />
-        
-        <div 
-          style={{ 
-            position: "relative",
+      
+      <div 
+        style={{ 
+          position: "relative",
             zIndex: 2,
             minHeight: "100vh",
             height: "auto",
-            padding: "20px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
             justifyContent: "space-between",
             maxWidth: "1440px",
             margin: "0 auto",
@@ -385,9 +385,9 @@ export const HomePage = () => {
           }}
         >
           {/* Top Navigation */}
-          <div style={{
+        <div style={{
             width: "100%",
-            display: "flex",
+          display: "flex",
             justifyContent: "flex-end",
             gap: "12px",
             padding: "5px 0 10px 0"
@@ -397,7 +397,7 @@ export const HomePage = () => {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                color: "rgba(255, 255, 255, 0.8)",
+            color: "rgba(255, 255, 255, 0.8)",
                 textDecoration: "none",
                 fontFamily: "VT323, monospace",
                 fontSize: "18px",
@@ -419,27 +419,27 @@ export const HomePage = () => {
               href="https://docs.privasui.xyz/pix"
               target="_blank"
               rel="noopener noreferrer"
-              style={{
+            style={{
                 color: "rgba(255, 255, 255, 0.8)",
                 textDecoration: "none",
                 fontFamily: "VT323, monospace",
                 fontSize: "18px",
-                transition: "all 0.2s ease",
+              transition: "all 0.2s ease",
                 imageRendering: "pixelated",
-              }}
-              onMouseEnter={(e) => {
+            }}
+            onMouseEnter={(e) => {
                 e.currentTarget.style.color = "#00ff66";
                 e.currentTarget.style.textShadow = "0 0 8px rgba(0, 255, 0, 0.5)";
-              }}
-              onMouseLeave={(e) => {
+            }}
+            onMouseLeave={(e) => {
                 e.currentTarget.style.color = "rgba(255, 255, 255, 0.8)";
                 e.currentTarget.style.textShadow = "none";
               }}
             >
               Telegram
             </a> */}
-          </div>
-
+        </div>
+        
           {/* Title Section */}
           <div className="w-full flex flex-col items-center" style={{ marginTop: '0' }}>
             <div 
@@ -489,45 +489,45 @@ export const HomePage = () => {
                 }}
               >
                 WHISPER ACROSS THE SUI BLOCKCHAIN
-              </p>
-            </div>
-
+            </p>
+          </div>
+          
             {/* Matrix Rain Divider after Whisper text - 32px height */}
             <div style={{ width: '100%', marginTop: '16px', padding: '15px 0' }}>
               <MatrixDivider height={32} />
-            </div>
+                </div>
 
             {/* Add Pi Orbit Section */}
             <div style={{ width: '100%', margin: '0 auto' }}>
               <SectionPiOrbit />
-            </div>
+                </div>
 
             {/* Matrix Rain Divider - 48px height */}
             <div style={{ width: '100%', padding: '15px 0' }}>
               <MatrixDivider height={48} />
-            </div>
+                </div>
 
             {/* Add Ecosystem Section */}
             <div style={{ width: '100%', margin: '0 auto' }}>
               <SectionEcosystem />
-            </div>
-
+        </div>
+        
             {/* Matrix Rain Divider before FAQ */}
             <div style={{ width: '100%', padding: '15px 0' }}>
               <MatrixDivider height={32} />
             </div>
-
+            
             {/* Add FAQ Section */}
             <div style={{ width: '100%', margin: '0 auto' }}>
               <SectionFaq />
-            </div>
-
+              </div>
+              
             {/* Add Wallet-Chat-More Section */}
             {/* <div style={{ width: '100%', margin: '0 auto' }}>
               <WalletChatMore />
             </div> */}
-          </div>
-          
+              </div>
+              
           {/* Bottom Section with Button and Social Links */}
           <div className="flex flex-col items-center gap-8" style={{ marginBottom: '5vh' }}>
             {/* Matrix Rain Divider before tagline - 32px height */}
@@ -568,8 +568,8 @@ export const HomePage = () => {
               >
                 choose 3 with Privasui
               </p>
-            </div>
-            
+        </div>
+        
             {/* Button */}
             <div style={{
               width: "100%",
@@ -583,7 +583,7 @@ export const HomePage = () => {
                   handleOpenWallet();
                 }}
                 style={{
-                  width: "100%",
+            width: "100%",
                   backgroundColor: "rgba(0, 0, 0, 0.7)",
                   color: "white",
                   border: "2px solid #00ff66",
@@ -652,12 +652,7 @@ export const HomePage = () => {
                     alignItems: "center",
                     gap: "8px",
                     color: "white"
-                  }}>
-                    {/* Donation Icon */}
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
-                    
+                  }}>              
                     {/* Donate Text */}
                     <span style={{
                       fontFamily: "VT323, monospace",
@@ -665,13 +660,13 @@ export const HomePage = () => {
                       color: "white",
                       imageRendering: "pixelated"
                     }}>
-                      Donate:
+                      Donate Sui:
                     </span>
                   </div>
                   
                   {/* Address with Copy Button */}
-                  <div style={{
-                    display: "flex",
+              <div style={{
+                display: "flex",
                     alignItems: "center",
                     gap: "8px"
                   }}>
@@ -687,16 +682,16 @@ export const HomePage = () => {
                       0x625055fb6216...f695bc6c9b
                     </span>
                     <CopyButton />
-                  </div>
+                </div>
                 </div>
                 
                 {/* Right side - Social Icons */}
                 <SocialButtons />
               </div>
             </div>
-          </div>
         </div>
-      </PageContainer>
+      </div>
+    </PageContainer>
     </>
   );
 }; 

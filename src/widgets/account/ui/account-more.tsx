@@ -24,7 +24,7 @@ export const AccountMore: React.FC = () => {
           <br/>
           Thanks,
           <br/>
-          @hello-world-admin
+          @hello-world-admin.pi
         
         </p>
         <div className='h-12'></div>

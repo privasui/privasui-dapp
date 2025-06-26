@@ -266,9 +266,9 @@ export function CreateProfile() {
           Create profile
         </Heading>
 
-        {/* Yearly/Lifetime tags under the title */}
-        {!usernameError && (
-          <div className="flex justify-center mb-6">
+        {/* Container for Yearly/Lifetime tags with fixed height to prevent layout shifts */}
+        <div className="h-16 flex items-center justify-center">
+          {!usernameError ? (
             <div className="flex bg-black border border-[#00ff00] rounded-full overflow-hidden">
               <ToggleGroup 
                 type="single" 
@@ -282,7 +282,7 @@ export function CreateProfile() {
                 >
                   Yearly
                 </ToggleGroupItem>
-                <div className="w-px bg-[#00ff00]" />
+                <div className="w-px bg-[#00ff00]"></div>
                 <ToggleGroupItem 
                   value="lifetime" 
                   className="h-10 px-8 py-1 font-mono text-sm rounded-r-full rounded-l-none bg-black text-gray-500 hover:bg-black hover:text-white hover:cursor-pointer border-none data-[state=on]:bg-[#00ff0033] data-[state=on]:text-[#00ff00] data-[state=on]:font-bold data-[state=on]:text-base transition-all duration-200"
@@ -291,8 +291,10 @@ export function CreateProfile() {
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="h-10 w-[276px]"></div>
+          )}
+        </div>
 
         {/* Spacer */}
         <div className="h-8" />

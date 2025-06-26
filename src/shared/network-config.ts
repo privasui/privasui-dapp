@@ -19,11 +19,15 @@ type ConfigKey =
 // Get the selected network from environment variables
 export const SUI_NETWORK = import.meta.env.VITE_SUI_NETWORK || 'devnet';
 console.log(`Using network: ${SUI_NETWORK}`);
+console.log("🌐 VITE_SUI_NETWORK env var:", import.meta.env.VITE_SUI_NETWORK);
 
+// Log the URL for devnet specifically
+const devnetUrl = getFullnodeUrl("devnet");
+console.log("🌐 getFullnodeUrl('devnet') returns:", devnetUrl);
 
 const configuration = {
   devnet: {
-    url: getFullnodeUrl("devnet"),
+    url: import.meta.env.VITE_DEVNET_RPC_URL || "http://127.0.0.1:9000", // Custom URL or your custom default
     variables: {
       PI_OBJECT_ID: import.meta.env.VITE_DEVNET_PI_OBJECT_ID || '',
       PIR_PACKAGE_ID_ORIGINAL: import.meta.env.VITE_DEVNET_PIR_PACKAGE_ID_ORIGINAL || '',
@@ -98,6 +102,9 @@ export const getNetworkVariable = (configKey: ConfigKey): string => {
 // Create network configuration with explicit variables for each network
 const { networkConfig, useNetworkVariable, useNetworkVariables } = createNetworkConfig(configuration);
 
+console.log("🌐 Final networkConfig:", networkConfig);
+console.log("🌐 Selected network configuration:", configuration[SUI_NETWORK as NetworkType]);
+
 // Helper functions to check current network
 export const isDevnet = () => SUI_NETWORK === 'devnet';
 export const isTestnet = () => SUI_NETWORK === 'testnet';
@@ -105,7 +112,7 @@ export const isMainnet = () => SUI_NETWORK === 'mainnet';
 
 // Network URL based on selected network
 export const NETWORK_URL = isDevnet() 
-  ? 'https://fullnode.devnet.sui.io' 
+  ? (import.meta.env.VITE_DEVNET_RPC_URL || "http://127.0.0.1:9000")
   : isTestnet() 
     ? 'https://fullnode.testnet.sui.io' 
     : 'https://fullnode.mainnet.sui.io';

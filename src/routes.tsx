@@ -10,6 +10,7 @@ import { ImportAccount } from "./pages/import-account/ui";
 import { ChatListPage } from "./pages/chat-list/ui";
 import { ChatPanel } from "./pages/chat-panel/ui";
 import { HomePage } from "./pages/home/ui";
+import { PiNSBuyPage } from "./pages/pins-buy/ui";
 
 export enum RouteNames {
   Home = "home",
@@ -20,6 +21,7 @@ export enum RouteNames {
   ReceipentAddress = ":receipentAddress",
   Accounts = "accounts",
   CreateAccount = "create-account",
+  BuyPiNS = "buy-pins",
 }
 
 export const AppRoutes = () => {
@@ -49,6 +51,7 @@ export const AppRoutes = () => {
               element={<CreateProfile />}
             />
             <Route path={RouteNames.Chats} element={<ChatListPage />} />
+            <Route path={RouteNames.BuyPiNS} element={<PiNSBuyPage />} />
           </Route>
           <Route path="*" element={<Navigate to={`/${RouteNames.Home}`} />} />
           <Route path="/" element={<Navigate to={`/${RouteNames.Home}`} />} />

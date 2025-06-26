@@ -27,6 +27,8 @@ export const AccountLayout = () => {
       const start = Date.now();
 
       console.log("start important", start);
+      console.log("🌐 [loadAccounts] SuiClient URL:", (suiClient as any)?.transport?.url);
+      console.log("🌐 [loadAccounts] SuiClient config:", suiClient);
 
       setLoading(true);
 

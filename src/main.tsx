@@ -10,6 +10,9 @@ import { networkConfig } from "./shared/network-config";
 export const queryClient = new QueryClient();
 
 console.log("🔍 [main]");
+console.log("🌐 [main] VITE_SUI_NETWORK:", import.meta.env.VITE_SUI_NETWORK);
+console.log("🌐 [main] defaultNetwork being passed:", import.meta.env.VITE_SUI_NETWORK as "devnet" | "mainnet" | "testnet");
+console.log("🌐 [main] networkConfig:", networkConfig);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   // If you want to disable double mounting in development, remove StrictMode
