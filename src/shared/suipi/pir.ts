@@ -89,7 +89,7 @@ export const getPackageItemRegistry = async (suiClient: SuiClient, packageName: 
         },
     });
 
-    console.log(`DDD getPackageItemRegistry ${packageName} ${itemRegistryType}`, itemRegistryDynamicFieldObj);
+    console.log(`[PIR] getPackageItemRegistry ${packageName} ${itemRegistryType}`, itemRegistryDynamicFieldObj);
 
     if(!itemRegistryDynamicFieldObj){
         throw new Error(`Item registry dynamic field object not found for package: ${packageName} and  itemRegistryType: ${itemRegistryType}`);

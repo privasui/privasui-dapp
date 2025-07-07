@@ -11,6 +11,7 @@ interface PinsAvailableProps {
   setLifetime: (isLifetime: boolean) => void;
   profilePrice: number;
   priceConfig: any;
+  onRegistrationSuccess?: () => void;
 }
 
 export const PinsAvailable: React.FC<PinsAvailableProps> = ({
@@ -18,7 +19,8 @@ export const PinsAvailable: React.FC<PinsAvailableProps> = ({
   lifetime,
   setLifetime,
   profilePrice,
-  priceConfig
+  priceConfig,
+  onRegistrationSuccess
 }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const nameRegistration = useNameRegistration();
@@ -42,6 +44,8 @@ export const PinsAvailable: React.FC<PinsAvailableProps> = ({
         onComplete: () => {
           addToast.success(`Successfully registered ${nameToRegister}`);
           setIsRegistering(false);
+          // Notify parent component to refresh NFT list
+          onRegistrationSuccess?.();
         },
         onError: (error: Error) => {
           addToast.error(`Registration failed: ${addToast.formatError(error)}`);

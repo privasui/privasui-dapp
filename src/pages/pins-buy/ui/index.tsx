@@ -4,7 +4,7 @@ import { AccountButton } from "@/widgets/account/ui/account-button";
 import { TypeInput } from "@/components/type-input";
 import { useNavigate, useLocation } from "react-router";
 import { RouteNames } from "@/routes";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSuiClient } from "@mysten/dapp-kit";
 import { getNameAddress, fetchPriceConfig, getNameExpiration, calculateNamePrice, getPiNSNameValidationError } from "@/shared/suipi";
 
@@ -29,6 +29,7 @@ export const PiNSBuyPage = () => {
   const [expirationDate, setExpirationDate] = useState<string | null>(null);
   const [lastMessageTime, setLastMessageTime] = useState<number>(0);
   const [lastMessage, setLastMessage] = useState<string>("");
+  const refreshNftsRef = useRef<(() => void) | null>(null);
 
   // Extract name from URL query params
   useEffect(() => {
@@ -159,8 +160,8 @@ export const PiNSBuyPage = () => {
             if (isValidationCancelled) return;
             
             if (expiration) {
-              // Format the date
-              const expirationDate = new Date(Number(expiration) * 1000);
+              // Format the date - timestamp is already in milliseconds
+              const expirationDate = new Date(Number(expiration));
               const formattedDate = expirationDate.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
@@ -226,6 +227,32 @@ export const PiNSBuyPage = () => {
     }
   };
 
+  const handleRegistrationSuccess = () => {
+    // Clear the search input after successful registration
+    setSearchName("");
+    
+    // Refresh the NFT list after successful registration
+    if (refreshNftsRef.current) {
+      try {
+        refreshNftsRef.current();
+      } catch (error) {
+        console.error('Error calling refreshNfts:', error);
+      }
+    } else {
+      console.warn('refreshNfts function not available yet, trying again in 100ms');
+      // Retry after a short delay to allow the component to initialize
+      setTimeout(() => {
+        if (refreshNftsRef.current) {
+          try {
+            refreshNftsRef.current();
+          } catch (error) {
+            console.error('Error calling refreshNfts (delayed):', error);
+          }
+        }
+      }, 100);
+    }
+  };
+
   return (
     <PageContainer
       header={
@@ -268,6 +295,7 @@ export const PiNSBuyPage = () => {
                       setLifetime={setLifetime}
                       profilePrice={profilePrice}
                       priceConfig={priceConfig}
+                      onRegistrationSuccess={handleRegistrationSuccess}
                     />
                   )}
                   
@@ -363,6 +391,7 @@ export const PiNSBuyPage = () => {
             showSendButton={true}
             showSuiVision={true}
             title="My piNS"
+            onRefresh={(fn) => { refreshNftsRef.current = fn; }}
           />
         </div>
       </div>

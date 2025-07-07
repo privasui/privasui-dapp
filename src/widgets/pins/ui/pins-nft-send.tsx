@@ -6,9 +6,52 @@ import { useNftTransfer } from '../model/use-nft-transfer';
 import { usePinsNftImage, handlePinsImageError } from '../model/use-pins-nft-image';
 import { PinsFallbackImage } from './pins-fallback-image';
 import { isDevnet, isTestnet } from "@/shared/network-config";
+import { getNameExpiration } from "@/shared/suipi";
+import { useSuiClient } from "@mysten/dapp-kit";
+import type { SuiClient } from "@mysten/sui/client";
+// import { PiNSNftData } from '../model/use-pins-batch-data';
+
+const formatExpirationDate = (timestamp: string | null): string => {
+  if (!timestamp) return "Never";
+  
+  try {
+    // Convert to number and handle as milliseconds
+    const expMs = Number(timestamp);
+    if (isNaN(expMs)) {
+      console.warn("[PiNS] Invalid timestamp:", timestamp);
+      return "Invalid Date";
+    }
+
+    console.log(`[PiNS Debug] Formatting expiration:`, {
+      raw_timestamp: timestamp,
+      parsed_ms: expMs,
+      as_date: new Date(expMs).toISOString()
+    });
+    
+    const date = new Date(expMs); // Use milliseconds directly
+    if (isNaN(date.getTime())) return "Invalid Date";
+    
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (days <= 0) return "Expired";
+    if (days === 1) return "Tomorrow";
+    if (days < 30) return `in ${days} days`;
+    
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch (error) {
+    console.error('[PiNS] Error formatting expiration date:', error);
+    return "Unknown";
+  }
+};
 
 interface PinsNftSendProps {
-  nft: any;
+  nft: any; // Handle both PiNSNftData and raw nft data
   onClose?: () => void;
   onSuccess?: () => void;
 }
@@ -19,26 +62,74 @@ export const PinsNftSend: React.FC<PinsNftSendProps> = ({
   onSuccess
 }) => {
   const { mutateAsync: sendNft } = useNftTransfer();
+  const suiClient = useSuiClient();
   const [recipientAddress, setRecipientAddress] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const [sendSuccess, setSendSuccess] = useState(false);
+  const [expiration, setExpiration] = useState<string>("Loading...");
 
-  // Extract NFT details
-  const nftData = nft.data as any;
-  const fields = nftData.content?.fields;
-  const objectId = nftData.objectId;
+  // Handle both PiNSNftData structure and raw nft data structure
+  let nftData: any;
+  let fields: any;
+  let objectId: string;
+  let extractedName: string;
   
-  // Extract name from fields or display
-  const name = fields && 'name' in fields ? String(fields.name) : '';
+  console.log("🔍 [NFT Transfer] Received nft data:", nft);
+  
+  if (nft.nftData) {
+    // Coming from PiNSNftData structure (modal system)
+    nftData = nft.nftData.data;
+    fields = nftData.content?.fields;
+    objectId = nft.objectId;
+    extractedName = nft.name || '';
+    console.log("🔍 [NFT Transfer] Using PiNSNftData structure");
+  } else if (nft.data) {
+    // Coming from raw nft data (direct drawer)
+    nftData = nft.data;
+    fields = nftData.content?.fields;
+    objectId = nftData.objectId;
+    extractedName = fields?.name || '';
+    console.log("🔍 [NFT Transfer] Using raw nft data structure");
+  } else {
+    console.error("❌ [NFT Transfer] Unknown data structure:", nft);
+    // Fallback
+    nftData = {};
+    fields = {};
+    objectId = '';
+    extractedName = '';
+  }
+  
+  console.log("🔍 [NFT Transfer] Extracted objectId:", objectId);
+  console.log("🔍 [NFT Transfer] Extracted name:", extractedName);
+  console.log("🔍 [NFT Transfer] NFT type:", nftData?.type);
+  
+  // Extract name from fields or display (use extractedName as fallback)
+  const name = extractedName || (fields && 'name' in fields ? String(fields.name) : '');
   const piName = name.endsWith('.pi') ? name : `${name}.pi`;
 
-  // Extract expiration date
-  const expirationField = fields && 'expiration_date' in fields ? String(fields.expiration_date) : 'Lifetime';
-  const expiration = expirationField === "Lifetime" ? "Never" : expirationField;
+  // Fetch and format expiration date
+  useEffect(() => {
+    const fetchExpiration = async () => {
+      try {
+        const cleanName = name.replace('.pi', '');
+        const expirationMs = await getNameExpiration(suiClient as unknown as SuiClient, cleanName);
+        const formattedExpiration = formatExpirationDate(expirationMs);
+        setExpiration(formattedExpiration);
+      } catch (error) {
+        console.error('[PiNS] Error fetching expiration:', error);
+        setExpiration('Unknown');
+      }
+    };
+
+    if (name) {
+      fetchExpiration();
+    }
+  }, [name, suiClient]);
 
   // Use the image utility to get consistent image handling
-  const { finalImageUrl, hasImage } = usePinsNftImage(nft);
+  const imageData = nft.nftData ? nft.nftData : nft;
+  const { finalImageUrl, hasImage } = usePinsNftImage(imageData);
 
   // Add effect to prevent zoom on mobile
   useEffect(() => {
@@ -98,11 +189,75 @@ export const PinsNftSend: React.FC<PinsNftSendProps> = ({
     setIsSending(true);
     setSendError("");
 
+    // Debug logging
+    console.log("🔍 [NFT Transfer Debug] NFT Data:", {
+      objectId: objectId,
+      nftType: nftData?.type,
+      nftFields: fields,
+      fullNftData: nft
+    });
+
+    // Additional debugging to understand object structure
+    console.log("🔍 [NFT Transfer Debug] Object Analysis:");
+    console.log("- Object ID being transferred:", objectId);
+    console.log("- Object type:", nftData?.type);
+    console.log("- Content fields:", JSON.stringify(fields, null, 2));
+    console.log("- Display data:", JSON.stringify(nftData?.display, null, 2));
+    console.log("- Full nft structure:", JSON.stringify(nft, null, 2));
+
+    // The objectId from usePinsBatchData is already the correct PiNameOwnership objectId!
+    // This is because usePinsBatchData filters by type: `${PINS_PACKAGE_ID}::name::PiNameOwnership`
+    let transferObjectId = objectId;
+    
+    // Enhanced validation for PiNameOwnership type
+    const isPiNameOwnership = nftData?.type?.includes('::name::PiNameOwnership') || 
+                             nftData?.type?.includes('PiNameOwnership');
+    
+    if (isPiNameOwnership) {
+      console.log("✅ [NFT Transfer] Confirmed PiNameOwnership object:", transferObjectId);
+      console.log("✅ [NFT Transfer] Object type:", nftData.type);
+    } else {
+      console.log("⚠️ [NFT Transfer] Warning: Object type doesn't match PiNameOwnership");
+      console.log("⚠️ [NFT Transfer] Object type:", nftData?.type);
+      console.log("⚠️ [NFT Transfer] Expected type pattern: '::name::PiNameOwnership'");
+      
+      // If it's not a PiNameOwnership, we should not use the custom transfer
+      // Instead, use standard NFT transfer
+      setSendError("This object is not a valid PiNameOwnership NFT");
+      setIsSending(false);
+      return;
+    }
+
+    // Validate object ID format
+    if (!transferObjectId || !transferObjectId.startsWith('0x')) {
+      console.error("❌ [NFT Transfer] Invalid object ID:", transferObjectId);
+      setSendError("Invalid object ID format");
+      setIsSending(false);
+      return;
+    }
+
     try {
-      // Call the NFT transfer function
+      // 🚨 DETAILED LOGGING BEFORE TRANSACTION
+      console.log("🚀 [NFT Transfer] ABOUT TO SEND TRANSACTION:");
+      console.log("🚀 [NFT Transfer] Name being transferred:", extractedName);
+      console.log("🚀 [NFT Transfer] From (current owner):", "will be determined by wallet");
+      console.log("🚀 [NFT Transfer] To (recipient):", recipientAddress);
+      console.log("🚀 [NFT Transfer] Object ID to Transfer:", transferObjectId);
+      console.log("🚀 [NFT Transfer] Object Type:", nftData?.type);
+      console.log("🚀 [NFT Transfer] Has Public Transfer:", nftData?.hasPublicTransfer);
+      console.log("🚀 [NFT Transfer] isPiNS flag:", true);
+      console.log("🚀 [NFT Transfer] What will happen:");
+      console.log("  1. Update PiName owner field to recipient");
+      console.log("  2. Update PiName address field to recipient");  
+      console.log("  3. Remove old owner from reverse address lookup");
+      console.log("  4. Add new owner to reverse address lookup (if they don't have a name)");
+      console.log("  5. Transfer PiNameOwnership object to recipient");
+      
+      // Call the NFT transfer function using PiNS-specific transfer
       await sendNft({
         recipient: recipientAddress,
-        objectId: objectId,
+        objectId: transferObjectId,
+        isPiNS: true, // Use PiNS-specific transfer function
         onComplete: async () => {
           console.log("🔵 NFT sent successfully");
           setSendSuccess(true);

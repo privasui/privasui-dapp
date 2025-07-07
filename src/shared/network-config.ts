@@ -22,8 +22,6 @@ console.log(`Using network: ${SUI_NETWORK}`);
 console.log("🌐 VITE_SUI_NETWORK env var:", import.meta.env.VITE_SUI_NETWORK);
 
 // Log the URL for devnet specifically
-const devnetUrl = getFullnodeUrl("devnet");
-console.log("🌐 getFullnodeUrl('devnet') returns:", devnetUrl);
 
 const configuration = {
   devnet: {

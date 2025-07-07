@@ -5,6 +5,8 @@ import { cn } from "@/shared/utils";
 import { usePinsNftImage, handlePinsImageError } from '../model/use-pins-nft-image';
 import { PinsFallbackImage } from './pins-fallback-image';
 import { isDevnet, isTestnet } from "@/shared/network-config";
+// import { useSetPiNSPrice } from '@/widgets/pins/model/use-pins-price-management';
+import { addToast } from '@/widgets/toast/model/use-toast';
 
 interface PinsNftSellProps {
   nft: any;
@@ -13,14 +15,16 @@ interface PinsNftSellProps {
 }
 
 export const PinsNftSell: React.FC<PinsNftSellProps> = ({ 
-  nft, 
-  onClose,
-  onSuccess
+  nft,
+  onSuccess: _onSuccess
 }) => {
   const [price, setPrice] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
   const [sellError, setSellError] = useState("");
-  const [sellSuccess, setSellSuccess] = useState(false);
+  const [sellSuccess, _setSellSuccess] = useState(false);
+  
+  // Price setting functionality temporarily disabled
+  // const setPriceHook = useSetPiNSPrice();
+  const isProcessing = false; // setPriceHook.isPending;
 
   // Extract NFT details
   const nftData = nft.data as any;
@@ -29,6 +33,7 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
   
   // Extract name from fields or display
   const name = fields && 'name' in fields ? String(fields.name) : '';
+  const cleanName = name.replace('.pi', ''); // Remove .pi suffix for the transaction
   const piName = name.endsWith('.pi') ? name : `${name}.pi`;
 
   // Extract expiration date
@@ -65,14 +70,14 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
     "text-base" // Ensure text is reasonably sized for mobile
   );
 
-  // Handle close button click
-  const handleClose = () => {
-    console.log("🔵 handleClose called in PinsNftSell");
-    if (onClose) {
-      console.log("🔵 Calling onClose from PinsNftSell");
-      onClose();
-    }
-  };
+  // Handle close button click - temporarily disabled  
+  // const _handleClose = () => {
+  //   console.log("🔵 handleClose called in PinsNftSell");
+  //   if (onClose) {
+  //     console.log("🔵 Calling onClose from PinsNftSell");
+  //     onClose();
+  //   }
+  // };
 
   // Validate price format (positive number with up to 9 decimal places)
   const isValidPrice = (price: string): boolean => {
@@ -93,34 +98,16 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
       return;
     }
 
-    setIsProcessing(true);
-    setSellError("");
-
     try {
-      // This is a placeholder for the actual price setting logic
-      // In a real implementation, you would call a function to list the NFT for sale
-      console.log(`Setting price for NFT ${objectId} to ${price} SUI`);
+      console.log(`🔄 Setting price for ${cleanName}: ${price} SUI`);
       
-      // Simulate API call with timeout
-      setTimeout(() => {
-        console.log("🔵 Price set successfully");
-        setSellSuccess(true);
-        
-        setTimeout(() => {
-          console.log("🔵 Success timeout completed, closing drawer");
-          setSellSuccess(false);
-          if (onSuccess) {
-            console.log("🔵 Calling onSuccess");
-            onSuccess();
-          }
-          handleClose(); // Use the handleClose function
-        }, 3000);
-      }, 2000);
+      // Price setting functionality temporarily disabled
+      setSellError("Price setting functionality is temporarily disabled");
+      addToast.error("Price setting functionality is temporarily disabled");
+      // await setPriceHook.mutateAsync({ ... });
     } catch (error: any) {
       console.error("🔵 Failed to set price:", error);
       setSellError(error.message || "Failed to set price");
-    } finally {
-      setIsProcessing(false);
     }
   };
 

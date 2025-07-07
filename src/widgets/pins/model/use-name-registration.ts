@@ -1,5 +1,5 @@
 import { queryClient } from "@/main";
-import { createNameRegistrationTx } from "@/shared/suipi";
+import { createNameRegistrationTx } from "@/shared/suipi/tx";
 import { useMutation } from "@tanstack/react-query";
 import { SuiClient } from "@mysten/sui/client";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
@@ -69,7 +69,7 @@ export const useNameRegistration = () => {
   const client = useSuiClient();  
   const { activeAccount } = useWalletAccountStore();
   
-  const mutation = useMutation({
+  return useMutation({
     mutationFn: async ({
       name,
       lifetime,
@@ -80,7 +80,7 @@ export const useNameRegistration = () => {
       name: string;
       lifetime: boolean;
       price: number;
-      onComplete: () => void;
+      onComplete?: () => void;
       onError?: (error: Error) => void;
     }) => {
       try {
@@ -97,7 +97,9 @@ export const useNameRegistration = () => {
           queryKey: ['pins-names'],
         });
         
-        onComplete();
+        if (onComplete) {
+          onComplete();
+        }
         return result;
       } catch (error) {
         console.error("[useNameRegistration] Error registering name:", error);
@@ -109,6 +111,4 @@ export const useNameRegistration = () => {
       }
     },
   });
-
-  return mutation;
 }; 

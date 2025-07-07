@@ -21,7 +21,7 @@ export const createProfileTx = async (
 ): Promise<Transaction> => {
   const tx = new Transaction();
 
-  console.log("🔍 AVAR:: [createProfileTx] TX_GAS_BUDGET_CREATE_PROFILE", TX_GAS_BUDGET_DEFAULT);
+  console.log("🔍 TX lifetime:", lifetime);
 
   tx.setGasBudget(price + TX_GAS_BUDGET_DEFAULT);
 
@@ -31,6 +31,8 @@ export const createProfileTx = async (
 
   // fetch the pi shared object with the initial shared version
   const piSharedObject = await fetchPiSharedObject(client);
+
+  console.log("🔍 Move call lifetime:", lifetime);
 
   tx.moveCall({
     target: `${PRIVASUI_PACKAGE_ID_LATEST}::app::create_profile`,
@@ -208,5 +210,44 @@ export const createNftTransferTx = (
   
   return tx;
 }
+
+// Create transaction object for PiNS name transfer (without executing it)
+export const createPiNSTransferTx = async (
+  client: SuiClient,
+  recipient: string,
+  objectId: string,
+): Promise<Transaction> => {
+  // Validate inputs
+  if (!recipient.startsWith('0x')) {
+    throw new Error('Invalid recipient address format');
+  }
+  
+  if (!objectId.startsWith('0x')) {
+    throw new Error('Invalid object ID format');
+  }
+
+  const tx = new Transaction();
+  
+  // Set gas budget
+  tx.setGasBudget(TX_GAS_BUDGET_DEFAULT);
+  
+  // Fetch the pi shared object
+  const piSharedObject = await fetchPiSharedObject(client);
+  
+  // Use the correct PiNS transfer function with proper parameters
+  tx.moveCall({
+    target: `${PRIVASUI_PACKAGE_ID_LATEST}::app::transfer_piname`,
+    arguments: [
+      tx.object('0x6'),                    // clock: &Clock
+      tx.sharedObjectRef(piSharedObject),  // pi: &mut Pi
+      tx.object(objectId),                 // ownership: PiNameOwnership
+      tx.pure.address(recipient),          // recipient: address
+    ]
+  });
+  
+  return tx;
+}
+
+// Price management functionality has been removed as it's not implemented in the Move contracts
 
 
