@@ -1,5 +1,6 @@
 import { queryClient } from "@/main";
 import { createNameRegistrationTx } from "@/shared/suipi/tx";
+import { invalidatePiNameCache } from "@/shared/suipi/pins";
 import { useMutation } from "@tanstack/react-query";
 import { SuiClient } from "@mysten/sui/client";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
@@ -84,6 +85,8 @@ export const useNameRegistration = () => {
       onError?: (error: Error) => void;
     }) => {
       try {
+        console.log(`🚀 [Registration] Starting registration for ${name}`);
+        
         const result = await registerName(
           activeAccount,
           name,
@@ -92,17 +95,30 @@ export const useNameRegistration = () => {
           client as unknown as SuiClient,
         );
         
+        console.log(`✅ [Registration] Transaction successful for ${name}, digest: ${result.digest}`);
+        
+        // Invalidate PiNS cache for the registered name AND clear all cache to ensure fresh data
+        invalidatePiNameCache(name);
+        invalidatePiNameCache(); // Clear all cache
+        console.log(`🔄 [Registration] Invalidated cache for ${name} and cleared all cache`);
+        
         // After successful name registration, refetch related data
         await queryClient.refetchQueries({
           queryKey: ['pins-names'],
         });
         
+        // Also invalidate other relevant queries
+        await queryClient.invalidateQueries({ queryKey: ['pins'] });
+        await queryClient.invalidateQueries({ queryKey: ['ownedObjects'] });
+        
+        console.log(`🔄 [Registration] Query cache invalidated`);
+        
         if (onComplete) {
-          onComplete();
+          await onComplete();
         }
         return result;
       } catch (error) {
-        console.error("[useNameRegistration] Error registering name:", error);
+        console.error(`❌ [Registration] Error registering name ${name}:`, error);
         // Properly propagate the error so React Query can handle it
         if (onError && error instanceof Error) {
           onError(error);

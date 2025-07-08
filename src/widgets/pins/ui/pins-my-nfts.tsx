@@ -117,8 +117,15 @@ export const PinsMyNfts = ({
                         'https://placehold.co/96x96/4CAF50/FFFFFF?text=piNS');
 
       // Fetch expiration
+      console.log(`⏰ [MyPins] Fetching expiration for ${name}...`);
       const expiration = await getNameExpiration(suiClient as unknown as SuiClient, name);
       const expirationFormatted = formatExpirationDate(expiration);
+      console.log(`⏰ [MyPins] ${name} expiration result:`, {
+        raw: expiration,
+        formatted: expirationFormatted,
+        timestamp: Date.now(),
+        cache_should_be_cleared: true
+      });
 
       // Fetch sale price
       const salePrice = await getPiNamePrice(suiClient as unknown as SuiClient, name);
@@ -149,6 +156,8 @@ export const PinsMyNfts = ({
     setError(null);
     
     try {
+      console.log("🔄 [MyPins] Fetching PiNS NFTs...");
+      
       // Fetch owned objects
       const resp = await suiClient.getOwnedObjects({
         owner: activeAccount.publicKey,
@@ -157,6 +166,8 @@ export const PinsMyNfts = ({
 
       // Filter and process PiNS NFTs in parallel
       const piNSObjects = resp.data.filter(obj => obj.data?.type === PINS_TYPE);
+      console.log(`📦 [MyPins] Found ${piNSObjects.length} PiNS objects`);
+      
       const processedNfts = await Promise.all(
         piNSObjects.map(nft => extractNftData(nft))
       );
@@ -165,10 +176,11 @@ export const PinsMyNfts = ({
       const validNfts = processedNfts.filter((nft): nft is PiNSNftData => nft !== null)
         .sort((a, b) => b.version - a.version);
 
+      console.log(`✅ [MyPins] Processed ${validNfts.length} valid NFTs`);
       setNfts(validNfts);
       return validNfts; // Return the fetched data
     } catch (error) {
-      console.error('Error fetching PiNS NFTs:', error);
+      console.error('❌ [MyPins] Error fetching PiNS NFTs:', error);
       setError("Failed to fetch PiNS names");
       setNfts([]);
       throw error; // Propagate error

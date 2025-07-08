@@ -227,29 +227,48 @@ export const PiNSBuyPage = () => {
     }
   };
 
-  const handleRegistrationSuccess = () => {
+  const handleRegistrationSuccess = async () => {
+    console.log("🎉 [Registration] Success handler called");
+    
     // Clear the search input after successful registration
     setSearchName("");
+    
+    // Add a longer delay to ensure:
+    // 1. Transaction is fully confirmed on blockchain
+    // 2. Cache invalidation has taken effect  
+    // 3. Blockchain state has propagated to all nodes
+    console.log("⏳ [Registration] Waiting for blockchain state to propagate...");
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Increased to 2 seconds
     
     // Refresh the NFT list after successful registration
     if (refreshNftsRef.current) {
       try {
-        refreshNftsRef.current();
+        console.log("🔄 [Registration] Refreshing MyPins list...");
+        await refreshNftsRef.current();
+        console.log("✅ [Registration] MyPins list refreshed successfully");
       } catch (error) {
-        console.error('Error calling refreshNfts:', error);
+        console.error('❌ [Registration] Error calling refreshNfts:', error);
+        // Add a toast to inform user of the issue
+        // addToast.error("Failed to refresh list. Please refresh the page.");
       }
     } else {
-      console.warn('refreshNfts function not available yet, trying again in 100ms');
-      // Retry after a short delay to allow the component to initialize
-      setTimeout(() => {
+      console.warn('⚠️ [Registration] refreshNfts function not available yet, trying again in 1000ms');
+      // Retry after a longer delay to allow the component to initialize
+      setTimeout(async () => {
         if (refreshNftsRef.current) {
           try {
-            refreshNftsRef.current();
+            console.log("🔄 [Registration] Refreshing MyPins list (delayed)...");
+            await refreshNftsRef.current();
+            console.log("✅ [Registration] MyPins list refreshed successfully (delayed)");
           } catch (error) {
-            console.error('Error calling refreshNfts (delayed):', error);
+            console.error('❌ [Registration] Error calling refreshNfts (delayed):', error);
+            // Add a toast to inform user of the issue
+            // addToast.error("Failed to refresh list. Please refresh the page.");
           }
+        } else {
+          console.error('❌ [Registration] refreshNfts function still not available after retry');
         }
-      }, 100);
+      }, 1000); // Increased retry delay
     }
   };
 
