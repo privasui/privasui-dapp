@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, createContext } from "react";
-import { Wallet, Repeat } from "lucide-react";
+import { Wallet, Repeat, MessageSquare, Network, Twitter } from "lucide-react";
 import { useWalletAccountStore } from "../../profile/model/use-wallet-accounts";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Box } from "@radix-ui/themes";
@@ -97,14 +97,50 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
 
   // Switch Account button that will be passed to the Drawer
   const switchAccountButton = (
-    <button
-      onClick={() => navigate(`/${RouteNames.Accounts}`)}
-      className="flex items-center gap-2 text-white underline font-mono text-base hover:text-primary transition-colors focus:outline-none bg-transparent border-none p-0"
-      style={{ boxShadow: "none" }}
-    >
-      <Repeat size={20} className="text-white" />
-      <span>Switch Account</span>
-    </button>
+    <div className="w-full flex items-center justify-center relative px-4">
+      {/* Centered Switch Account button */}
+      <button
+        onClick={() => navigate(`/${RouteNames.Accounts}`)}
+        className="flex items-center gap-2 text-white underline font-mono text-base hover:text-primary transition-colors focus:outline-none bg-transparent border-none p-0"
+        style={{ boxShadow: "none" }}
+      >
+        <Repeat size={20} className="text-white" />
+        <span>Switch Account</span>
+      </button>
+
+      {/* Right side icons within app boundaries */}
+      <div className="absolute right-4 flex items-center gap-6">
+        <div 
+          className="cursor-pointer hover:opacity-80 flex flex-col items-center gap-1" 
+          onClick={() => {
+            setShowAccountView(false);
+            navigate(`/${RouteNames.Chats}`);
+          }}
+          title="Open secure messenger"
+        >
+          <MessageSquare size={20} className="text-primary" />
+          <span className="text-xs text-primary font-mono">piM</span>
+        </div>
+        <div 
+          className="cursor-pointer hover:opacity-80 flex flex-col items-center gap-1" 
+          onClick={() => {
+            setShowAccountView(false);
+            navigate(`/${RouteNames.BuyPiNS}`);
+          }}
+          title="piNS - Name service & Market"
+        >
+          <Network size={20} className="text-primary" />
+          <span className="text-xs text-primary font-mono">piNS</span>
+        </div>
+        <div 
+          className="cursor-not-allowed opacity-50 flex flex-col items-center gap-1" 
+          title="On-chain X (Coming Soon)"
+        >
+          <Twitter size={20} className="text-gray-500" />
+          <span className="text-xs text-gray-500 font-mono">piX</span>
+        </div>
+      </div>
+    </div>
   );
 
   if (
