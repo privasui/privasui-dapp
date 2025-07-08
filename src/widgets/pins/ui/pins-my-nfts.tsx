@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSuiClient } from "@mysten/dapp-kit";
 import type { SuiClient } from "@mysten/sui/client";
 import { useWalletAccountStore } from "@/widgets/profile/model/use-wallet-accounts";
-import { extractDisplayField, getNameExpiration } from "@/shared/suipi";
+import { extractDisplayField, getNameExpiration, getPiNamePrice } from "@/shared/suipi";
 import { PinsNftItem } from "./pins-nft-item";
 import { getNetworkVariable } from "@/shared/network-config";
 
@@ -23,6 +23,7 @@ interface PiNSNftData {
   expiration: string;
   version: number;
   rawData: any;
+  salePrice?: string | null;
 }
 
 const PINS_PACKAGE_ID_ORIGINAL = getNetworkVariable("PINS_PACKAGE_ID_ORIGINAL");
@@ -119,6 +120,9 @@ export const PinsMyNfts = ({
       const expiration = await getNameExpiration(suiClient as unknown as SuiClient, name);
       const expirationFormatted = formatExpirationDate(expiration);
 
+      // Fetch sale price
+      const salePrice = await getPiNamePrice(suiClient as unknown as SuiClient, name);
+
       return {
         objectId: nftData.objectId,
         name,
@@ -126,7 +130,8 @@ export const PinsMyNfts = ({
         imageUrl,
         expiration: expirationFormatted,
         version: nftData.version ? parseInt(nftData.version) : 0,
-        rawData: nft
+        rawData: nft,
+        salePrice
       };
     } catch (error) {
       console.error(`Error processing NFT:`, error);
@@ -161,10 +166,12 @@ export const PinsMyNfts = ({
         .sort((a, b) => b.version - a.version);
 
       setNfts(validNfts);
+      return validNfts; // Return the fetched data
     } catch (error) {
       console.error('Error fetching PiNS NFTs:', error);
       setError("Failed to fetch PiNS names");
       setNfts([]);
+      throw error; // Propagate error
     } finally {
       setLoading(false);
     }
@@ -179,6 +186,18 @@ export const PinsMyNfts = ({
       onRefresh(fetchPiNSNamesAndDisplays);
     }
   }, [onRefresh, fetchPiNSNamesAndDisplays]);
+
+  const handlePriceChange = useCallback(async () => {
+    console.log("🔄 [PiNS] Refreshing NFT list after price change");
+    setLoading(true); // Show loading state
+    try {
+      await fetchPiNSNamesAndDisplays();
+    } catch (error) {
+      console.error("Failed to refresh NFTs after price change:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchPiNSNamesAndDisplays]);
 
   const renderContent = () => {
     if (error) {
@@ -236,10 +255,12 @@ export const PinsMyNfts = ({
             finalImageUrl={nft.imageUrl}
             piName={nft.piName}
             onNftSent={fetchPiNSNamesAndDisplays}
+            onPriceChange={handlePriceChange}
             showSendButton={showSendButton}
             showSellButton={showSellButton}
             showSuiVision={showSuiVision}
             loading={loading}
+            salePrice={nft.salePrice}
           />
         ))}
       </div>

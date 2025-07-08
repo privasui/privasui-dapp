@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Tag, Clock, ExternalLink, DollarSign } from "lucide-react";
+import { Tag, Clock, ExternalLink, DollarSign, ShoppingCart, Ban, Trash2, Check } from "lucide-react";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { cn } from "@/shared/utils";
 import { usePinsNftImage, handlePinsImageError } from '../model/use-pins-nft-image';
 import { PinsFallbackImage } from './pins-fallback-image';
 import { isDevnet, isTestnet } from "@/shared/network-config";
-// import { useSetPiNSPrice } from '@/widgets/pins/model/use-pins-price-management';
+import { getPiNamePrice, getNameExpiration } from '@/shared/suipi';
+import type { SuiClient } from "@mysten/sui/client";
+import { useSuiClient } from "@mysten/dapp-kit";
 import { addToast } from '@/widgets/toast/model/use-toast';
+import { usePiNamePriceManagement } from '../model/use-pins-price-management';
+
+// Helper function to format expiration date
+const formatExpirationDate = (expirationMs: string | null): string => {
+  if (!expirationMs) return "Unknown";
+  if (expirationMs === "0") return "Never";
+  
+  const expDate = new Date(parseInt(expirationMs));
+  return expDate.toLocaleDateString();
+};
 
 interface PinsNftSellProps {
   nft: any;
@@ -16,16 +28,18 @@ interface PinsNftSellProps {
 
 export const PinsNftSell: React.FC<PinsNftSellProps> = ({ 
   nft,
-  onSuccess: _onSuccess
+  onClose,
+  onSuccess
 }) => {
+  const suiClient = useSuiClient();
   const [price, setPrice] = useState("");
+  const [currentPrice, setCurrentPrice] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [sellError, setSellError] = useState("");
-  const [sellSuccess, _setSellSuccess] = useState(false);
+  const [sellSuccess, setSellSuccess] = useState(false);
+  const [expiration, setExpiration] = useState<string>("Loading...");
+  const { setPrice: setPriceHook, unsetPrice } = usePiNamePriceManagement();
   
-  // Price setting functionality temporarily disabled
-  // const setPriceHook = useSetPiNSPrice();
-  const isProcessing = false; // setPriceHook.isPending;
-
   // Extract NFT details
   const nftData = nft.data as any;
   const fields = nftData.content?.fields;
@@ -36,9 +50,36 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
   const cleanName = name.replace('.pi', ''); // Remove .pi suffix for the transaction
   const piName = name.endsWith('.pi') ? name : `${name}.pi`;
 
-  // Extract expiration date
-  const expirationField = fields && 'expiration_date' in fields ? String(fields.expiration_date) : 'Lifetime';
-  const expiration = expirationField === "Lifetime" ? "Never" : expirationField;
+  // Fetch current price and expiration on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch price
+        const price = await getPiNamePrice(suiClient, cleanName);
+        console.log(`💰 [PiNS] Current price for ${cleanName}:`, price);
+        setCurrentPrice(price);
+        if (price) {
+          setPrice(price); // Pre-fill the input with current price
+        }
+
+        // Fetch expiration
+        const expirationMs = await getNameExpiration(suiClient as unknown as SuiClient, cleanName);
+        const formattedExpiration = formatExpirationDate(expirationMs);
+        setExpiration(formattedExpiration);
+        
+      } catch (error) {
+        console.error(`❌ [PiNS] Error fetching data for ${cleanName}:`, error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (cleanName) {
+      fetchData();
+    }
+  }, [cleanName, suiClient]);
 
   // Use the image utility to get consistent image handling
   const { finalImageUrl, hasImage } = usePinsNftImage(nft);
@@ -64,20 +105,11 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
 
   const inputClassName = cn(
     "w-full px-3 py-2 bg-transparent",
-    "text-[#00ff00] font-mono text-base outline-none",
+    "text-[#00ff00] font-mono text-lg outline-none",
     "border-b border-[#00ff00]/20",
     "transition-colors focus:border-[#00ff00]",
-    "text-base" // Ensure text is reasonably sized for mobile
+    sellError && "border-[#ff4d4d]"
   );
-
-  // Handle close button click - temporarily disabled  
-  // const _handleClose = () => {
-  //   console.log("🔵 handleClose called in PinsNftSell");
-  //   if (onClose) {
-  //     console.log("🔵 Calling onClose from PinsNftSell");
-  //     onClose();
-  //   }
-  // };
 
   // Validate price format (positive number with up to 9 decimal places)
   const isValidPrice = (price: string): boolean => {
@@ -101,19 +133,119 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
     try {
       console.log(`🔄 Setting price for ${cleanName}: ${price} SUI`);
       
-      // Price setting functionality temporarily disabled
-      setSellError("Price setting functionality is temporarily disabled");
-      addToast.error("Price setting functionality is temporarily disabled");
-      // await setPriceHook.mutateAsync({ ... });
+      await setPriceHook.mutateAsync({
+        name: cleanName,
+        price: parseFloat(price),
+        onComplete: async () => {
+          setSellSuccess(true);
+          addToast.success(`Successfully set price for ${piName}`);
+          
+          // Wait for refresh to complete before closing
+          if (onSuccess) {
+            try {
+              await onSuccess();
+              // Only close after refresh is complete
+              if (onClose) {
+                onClose();
+              }
+            } catch (error) {
+              console.error("Failed to refresh after setting price:", error);
+              // Still close the dialog even if refresh fails
+              if (onClose) {
+                onClose();
+              }
+            }
+          } else if (onClose) {
+            onClose();
+          }
+        },
+        onError: (error: Error) => {
+          setSellError(error.message);
+          addToast.error(`Failed to set price: ${error.message}`);
+        }
+      });
     } catch (error: any) {
       console.error("🔵 Failed to set price:", error);
       setSellError(error.message || "Failed to set price");
     }
   };
 
+  const handleUnsetPrice = async () => {
+    try {
+      console.log(`🔄 Removing price for ${cleanName}`);
+      
+      await unsetPrice.mutateAsync({
+        name: cleanName,
+        onComplete: async () => {
+          setSellSuccess(true);
+          addToast.success(`Successfully removed price for ${piName}`);
+          
+          // Wait for refresh to complete before closing
+          if (onSuccess) {
+            try {
+              await onSuccess();
+              // Only close after refresh is complete
+              if (onClose) {
+                onClose();
+              }
+            } catch (error) {
+              console.error("Failed to refresh after removing price:", error);
+              // Still close the dialog even if refresh fails
+              if (onClose) {
+                onClose();
+              }
+            }
+          } else if (onClose) {
+            onClose();
+          }
+        },
+        onError: (error: Error) => {
+          setSellError(error.message);
+          addToast.error(`Failed to remove price: ${error.message}`);
+        }
+      });
+    } catch (error: any) {
+      console.error("🔵 Failed to remove price:", error);
+      setSellError(error.message || "Failed to remove price");
+    }
+  };
+
+  // Separate loading states
+  const isSettingPrice = setPriceHook.isPending;
+  const isRemovingPrice = unsetPrice.isPending;
+  const isProcessing = isSettingPrice || isRemovingPrice;
+
+  // Function to render price status with appropriate icon
+  const renderPriceStatus = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center gap-2">
+          <LoadingSpinner />
+          <span>Loading price...</span>
+        </div>
+      );
+    }
+
+    if (currentPrice) {
+      return (
+        <div className="flex items-center gap-2 text-[#00ff00]">
+          <ShoppingCart size={12} className="text-[#00ff00]" />
+          <span>{currentPrice} SUI</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2 text-primary/50">
+        <Ban size={12} />
+        <span>Not listed for sale</span>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col w-full space-y-6 p-4">
-      {/* NFT Display - Updated to match PinsNftItem height and layout */}
+      {/* NFT Display */}
       <div className="w-full rounded-2xl overflow-hidden border border-primary/15 p-0 bg-black/50">
         <div className="grid grid-cols-[48px_1fr_auto] gap-4 items-center h-20 w-full px-4">
           {/* NFT Image */}
@@ -136,15 +268,14 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
               {piName}
             </div>
             
-            {/* Expiration date with SuiVision link */}
+            {/* Price Status with SuiVision link */}
             <div className="font-mono text-sm text-primary/70 truncate flex items-center gap-2 mt-1">
-              {/* Expires with consistent gap */}
+              {/* Price Status */}
               <div className="flex items-center gap-2">
-                <Clock size={12} className="text-primary/50 flex-shrink-0" />
-                <span>Expires: {expiration}</span>
+                {renderPriceStatus()}
               </div>
               
-              {/* SuiVision Link - Inline with Expires */}
+              {/* SuiVision Link - Inline with Status */}
               <a
                 href={`https://${isDevnet() ? 'devnet.' : isTestnet() ? 'testnet.' : ''}suivision.xyz/object/${objectId}`}
                 target="_blank"
@@ -158,95 +289,104 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
             </div>
           </div>
           
-          {/* Empty space for layout consistency */}
+          {/* Empty space for consistency */}
           <div></div>
         </div>
       </div>
 
       <div className="h-20"></div>
 
-      {/* Price Input */}
-      <div className="relative">
-        <div className="relative flex items-center">
-          <div className="absolute left-0 pl-3 flex items-center pointer-events-none">
-            <DollarSign size={16} className="text-[#00ff00]/50" />
-          </div>
+      {/* Price Input and Buttons */}
+      <div className="space-y-4">
+        {/* Price Input */}
+        <div className="relative">
           <input
             type="text"
-            placeholder="Price in SUI"
             value={price}
             onChange={(e) => {
               setPrice(e.target.value);
-              // Clear error when user starts typing again
-              if (sellError) setSellError("");
+              setSellError("");
             }}
-            className={cn(
-              inputClassName,
-              "pl-10", // Add padding for the dollar sign
-              sellError && "border-[#ff4d4d]" // Add red border if there's an error
-            )}
-            style={{ fontSize: '16px' }} // Prevent iOS zoom
+            placeholder="Enter price in SUI"
+            className={inputClassName}
+            disabled={isProcessing}
           />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#00ff00]/50 font-mono">
+            SUI
+          </div>
         </div>
+
+        <div className="h-20"></div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-6">
+          {/* Set Price Button */}
+          <button
+            onClick={handleSetPrice}
+            disabled={isSettingPrice}
+            style={{
+              backgroundColor: "rgba(0, 255, 0, 0.1)",
+              color: "#00ff00",
+              border: "1px solid rgba(0, 255, 0, 0.5)",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              cursor: isSettingPrice ? "not-allowed" : "pointer",
+              fontFamily: "monospace",
+              fontSize: "16px",
+              transition: "all 0.2s ease",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              opacity: isSettingPrice ? 0.7 : 1,
+              width: "100%"
+            }}
+          >
+            {isSettingPrice ? (
+              <>
+                <LoadingSpinner className="text-[#00ff00]" />
+                <span style={{ marginLeft: "8px" }}>Setting Price...</span>
+              </>
+            ) : (
+              <span className="text-[#00ff00]">Set New Price</span>
+            )}
+          </button>
+
+          {/* Remove Price Link */}
+          {currentPrice && (
+            <button
+              onClick={handleUnsetPrice}
+              disabled={isRemovingPrice}
+              className="flex items-center justify-center gap-2 text-[#ff4d4d] hover:text-[#ff6b6b] font-mono transition-colors hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRemovingPrice ? (
+                <>
+                  <LoadingSpinner className="text-red-500" />
+                  <span>Removing Price...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 size={16} />
+                  <span>Remove Price</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Error Messages */}
         {sellError && (
-          <p className="text-[#ff4d4d] text-sm mt-2 font-mono">{sellError}</p>
+          <div className="text-[#ff4d4d] text-sm text-center mt-4">
+            {sellError}
+          </div>
         )}
       </div>
 
-      <div className="h-20"></div>
+      <div className="h-4"></div>
 
-      {/* Set Price Button */}
-      <div className="flex justify-center">
-        <button
-          onClick={handleSetPrice}
-          disabled={isProcessing}
-          style={{
-            backgroundColor: "rgba(0, 255, 0, 0.1)",
-            color: isProcessing ? "rgba(255, 255, 255, 0.5)" : "#00ff00",
-            border: "1px solid rgba(0, 255, 0, 0.5)",
-            padding: "12px 24px",
-            borderRadius: "8px",
-            cursor: isProcessing ? "not-allowed" : "pointer",
-            fontFamily: "monospace",
-            fontSize: "16px",
-            transition: "all 0.2s ease",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            opacity: isProcessing ? 0.6 : 1,
-            width: "100%",
-            height: "48px",
-            boxShadow: "0 0 10px rgba(0, 255, 0, 0.2)"
-          }}
-          onMouseEnter={(e) => {
-            if (!isProcessing) {
-              e.currentTarget.style.backgroundColor = "rgba(0, 255, 0, 0.2)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "rgba(0, 255, 0, 0.1)";
-          }}
-        >
-          {isProcessing ? (
-            <div className="flex items-center gap-2">
-              <LoadingSpinner />
-              <span className="text-[#00ff00]">Processing...</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Tag size={16} />
-              <span>Set Price</span>
-            </div>
-          )}
-        </button>
-      </div>
-
-      {/* Success message */}
+      {/* Success Messages */}
       {sellSuccess && (
-        <div className="mt-4 p-4 bg-[#00ff00]/10 border border-[#00ff00]/30 rounded-lg">
-          <p className="text-[#00ff00] text-center font-mono">
-            Price set successfully! Your NFT is now listed for sale.
-          </p>
+        <div className="text-[#00ff00] text-sm text-center mt-4">
+          Transaction successful!
         </div>
       )}
     </div>

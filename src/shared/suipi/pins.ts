@@ -16,7 +16,39 @@ export interface PiNameData {
 const piNameCache: Record<string, { data: PiNameData | null; timestamp: number }> = {};
 const CACHE_DURATION = 30000; // 30 seconds cache
 
-export const getPiNameData = async (suiClient: SuiClient, name: string): Promise<PiNameData | null> => {
+// Function to invalidate cache for a specific name or all names
+export const invalidatePiNameCache = (name?: string) => {
+  if (name) {
+    delete piNameCache[name];
+    console.log(`🗑️ [PiNS Cache] Invalidated cache for ${name}`);
+  } else {
+    // Clear all cache
+    Object.keys(piNameCache).forEach(key => delete piNameCache[key]);
+    console.log(`🗑️ [PiNS Cache] Invalidated all cache`);
+  }
+};
+
+export const getPiNamePrice = async (suiClient: any, name: string): Promise<string | null> => {
+  try {
+    const data = await getPiNameData(suiClient, name);
+    if (!data?.data) return null;
+
+    // Price is stored in the data VecMap with key "price"
+    const price = data.data["price"];
+    console.log(`💰 [PiNS Debug] Price data for ${name}:`, {
+      has_data: !!data.data,
+      raw_price: price,
+      data_keys: Object.keys(data.data)
+    });
+    
+    return price || null;
+  } catch (error) {
+    console.error(`❌ [PiNS Debug] Error getting price for ${name}:`, error);
+    return null;
+  }
+};
+
+export const getPiNameData = async (suiClient: any, name: string): Promise<PiNameData | null> => {
   try {
     // Check cache first
     const now = Date.now();
@@ -41,30 +73,39 @@ export const getPiNameData = async (suiClient: SuiClient, name: string): Promise
     console.log(`\n📄 [PiNS Debug] Raw PiNS data for ${name}:`, JSON.stringify(piNSData, null, 2));
     
     const fields = piNSData.value.fields;
-    console.log(`\n⏰ [PiNS Debug] Expiration fields for ${name}:`, {
-      raw_expiration: fields.expiration_ms,
-      has_expiration: !!fields.expiration_ms,
-      type: fields.expiration_ms ? typeof fields.expiration_ms : 'undefined'
-    });
+    
+    // Process VecMap data into a regular object
+    let processedData: Record<string, string> | undefined;
+    if (fields.data?.fields?.contents) {
+      processedData = {};
+      const vecMap = fields.data.fields.contents;
+      if (Array.isArray(vecMap)) {
+        for (const entry of vecMap) {
+          if (entry.fields) {
+            processedData[entry.fields.key] = entry.fields.value;
+          }
+        }
+      }
+      console.log(`\n📝 [PiNS Debug] Processed VecMap data for ${name}:`, processedData);
+    }
     
     // Return the complete PiName data
-    const processedData = {
+    const result = {
       name: fields.name,
       owner: fields.owner,
       ownership_id: fields.ownership_id,
       nft_id: fields.nft_id || undefined,
-      // expiration_ms comes directly as a string, not in fields.value
       expiration_ms: fields.expiration_ms || undefined,
       address: fields.address || undefined,
-      data: fields.data || undefined,
+      data: processedData,
       created_at: fields.created_at,
     };
     
-    console.log(`\n✅ [PiNS Debug] Processed PiName data for ${name}:`, processedData);
+    console.log(`\n✅ [PiNS Debug] Processed PiName data for ${name}:`, result);
     
     // Cache the result
-    piNameCache[name] = { data: processedData, timestamp: now };
-    return processedData;
+    piNameCache[name] = { data: result, timestamp: now };
+    return result;
     
   } catch (error) {
     console.error(`❌ [PiNS Debug] Error getting PiName data for ${name}:`, error);

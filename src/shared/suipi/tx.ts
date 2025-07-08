@@ -248,6 +248,60 @@ export const createPiNSTransferTx = async (
   return tx;
 }
 
+// Create transaction object for setting PiNS name sale price (without executing it)
+export const createSetPiNameSalePriceTx = async (
+  client: SuiClient,
+  name: string,
+  price: number,
+): Promise<Transaction> => {
+  const tx = new Transaction();
+  
+  // Set gas budget
+  tx.setGasBudget(TX_GAS_BUDGET_DEFAULT);
+  
+  // Fetch the pi shared object
+  const piSharedObject = await fetchPiSharedObject(client);
+  
+  // Use the set_piname_sale_price function
+  tx.moveCall({
+    target: `${PRIVASUI_PACKAGE_ID_LATEST}::app::set_piname_sale_price`,
+    arguments: [
+      tx.object('0x6'),                    // clock: &Clock
+      tx.sharedObjectRef(piSharedObject),  // pi: &mut Pi
+      tx.pure.string(name),                // name: String
+      tx.pure.u64(BigInt(price)),          // price_lamports: u64
+    ]
+  });
+  
+  return tx;
+};
+
+// Create transaction object for unsetting PiNS name sale price (without executing it)
+export const createUnsetPiNameSalePriceTx = async (
+  client: SuiClient,
+  name: string,
+): Promise<Transaction> => {
+  const tx = new Transaction();
+  
+  // Set gas budget
+  tx.setGasBudget(TX_GAS_BUDGET_DEFAULT);
+  
+  // Fetch the pi shared object
+  const piSharedObject = await fetchPiSharedObject(client);
+  
+  // Use the unset_piname_sale_price function
+  tx.moveCall({
+    target: `${PRIVASUI_PACKAGE_ID_LATEST}::app::unset_piname_sale_price`,
+    arguments: [
+      tx.object('0x6'),                    // clock: &Clock
+      tx.sharedObjectRef(piSharedObject),  // pi: &mut Pi
+      tx.pure.string(name),                // name: String
+    ]
+  });
+  
+  return tx;
+};
+
 // Price management functionality has been removed as it's not implemented in the Move contracts
 
 

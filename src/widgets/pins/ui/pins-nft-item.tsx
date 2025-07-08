@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink, Clock, Send, Tag, DollarSign, User, Database } from "lucide-react";
+import { ExternalLink, Clock, Send, Tag, DollarSign, User, Database, ShoppingCart } from "lucide-react";
 import { isDevnet, isTestnet } from "@/shared/network-config";
 import { PinsNftSendDrawer } from "./pins-nft-send-drawer";
 import { PinsNftSellDrawer } from "./pins-sell-drawer";
@@ -11,6 +11,7 @@ interface PinsNftItemProps {
   finalImageUrl: string;
   piName: string;
   onNftSent?: () => void;
+  onPriceChange?: () => void;
   showSendButton?: boolean;
   showSellButton?: boolean;
   showSuiVision?: boolean;
@@ -25,6 +26,7 @@ export const PinsNftItem = ({
   finalImageUrl,
   piName,
   onNftSent,
+  onPriceChange = onNftSent,
   showSendButton = true,
   showSellButton = true,
   showSuiVision = true,
@@ -61,8 +63,9 @@ export const PinsNftItem = ({
   };
 
   const handleSellSuccess = () => {
-    if (onNftSent) {
-      onNftSent();
+    console.log("🔄 [PiNS] Price change successful, refreshing NFT list");
+    if (onPriceChange) {
+      onPriceChange();
     }
   };
 
@@ -123,13 +126,6 @@ export const PinsNftItem = ({
               <span>Expires: {expiration === "Lifetime" ? "Never" : expiration}</span>
             </div>
             
-            {salePrice && (
-              <div className="flex items-center gap-1">
-                <DollarSign size={12} className="text-green-400 flex-shrink-0" />
-                <span className="text-green-400">{salePrice} SUI</span>
-              </div>
-            )}
-            
             {showSuiVision && (
               <a
                 href={`https://${isDevnet() ? 'devnet.' : isTestnet() ? 'testnet.' : ''}suivision.xyz/object/${objectId}`}
@@ -167,31 +163,39 @@ export const PinsNftItem = ({
           )}
         </div>
         
-        <div className="flex items-center gap-3">
-          {showSellButton && (
+        <div className="flex items-center gap-2">
+          {showSellButton && salePrice ? (
             <button
               onClick={handleSellClick}
-              className="text-[#00ff00] hover:text-[#00ff00]/80 transition-colors p-1 rounded hover:bg-[#00ff00]/10"
-              title="Sell NFT"
-              aria-label={`Sell ${piName}`}
+              className="flex items-center gap-1 px-2 py-1 rounded bg-[#00ff00]/10 cursor-pointer hover:bg-[#00ff00]/20 transition-colors"
+              title="Update Price"
             >
-              <Tag size={16} className="flex-shrink-0" />
+              <ShoppingCart size={14} className="text-[#00ff00]" />
+              <span className="text-[#00ff00] text-sm font-mono">{salePrice} SUI</span>
             </button>
-          )}
-          
+          ) : showSellButton ? (
+            <button
+              onClick={handleSellClick}
+              className="w-8 h-8 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+              title="Set Price"
+            >
+              <ShoppingCart size={16} className="text-primary/70" />
+            </button>
+          ) : null}
+
           {showSendButton && (
             <button
               onClick={handleSendClick}
-              className="text-[#00ff00] hover:text-[#00ff00]/80 transition-colors p-1 rounded hover:bg-[#00ff00]/10"
-              title="Send NFT"
-              aria-label={`Send ${piName}`}
+              className="w-8 h-8 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+              title="Send PiNS"
             >
-              <Send size={16} className="flex-shrink-0" />
+              <Send size={16} className="text-primary/70" />
             </button>
           )}
         </div>
       </div>
 
+      {/* Send Drawer */}
       {sendDrawerOpen && (
         <PinsNftSendDrawer
           nft={nft}
@@ -201,6 +205,7 @@ export const PinsNftItem = ({
         />
       )}
 
+      {/* Sell Drawer */}
       {sellDrawerOpen && (
         <PinsNftSellDrawer
           nft={nft}
