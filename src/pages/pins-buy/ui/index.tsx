@@ -223,7 +223,7 @@ export const PiNSBuyPage = () => {
 
   const handleChatWithOwner = () => {
     if (piNSAddress) {
-      navigate(`/chats/${piNSAddress}`);
+      navigate(`/pim/${piNSAddress}`);
     }
   };
 

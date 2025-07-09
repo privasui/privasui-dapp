@@ -155,7 +155,7 @@ export const ChatConversationItem: React.FC<ChatConversationItemProps> = ({ owne
   return (
     <div
         key={`${ownerStreamId}-${pairStreamId}`}
-        onClick={() => navigate(`/chats/${pair}`)}
+        onClick={() => navigate(`/pim/${pair}`)}
         style={{
           display: "flex",
           alignItems: "center",

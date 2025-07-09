@@ -114,7 +114,7 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
           className="cursor-pointer hover:opacity-80 flex flex-col items-center gap-1" 
           onClick={() => {
             setShowAccountView(false);
-            navigate(`/${RouteNames.Chats}`);
+            window.location.href = `/${RouteNames.Pim}`;
           }}
           title="Open secure messenger"
         >
@@ -125,7 +125,7 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
           className="cursor-pointer hover:opacity-80 flex flex-col items-center gap-1" 
           onClick={() => {
             setShowAccountView(false);
-            navigate(`/${RouteNames.BuyPiNS}`);
+            window.location.href = `/${RouteNames.PiNS}`;
           }}
           title="piNS - Name service & Market"
         >

@@ -30,11 +30,11 @@ export const AccountList = () => {
     await setActiveAccountByUid(uid);
 
     if (uid === activeAccount?.uid) {
-      navigate(`/${RouteNames.Chats}`);
+      navigate(`/${RouteNames.Pim}`);
       return;
     }
 
-    navigate(`/${RouteNames.Chats}`);
+    navigate(`/${RouteNames.Pim}`);
   };
 
   if (isInitializing) {

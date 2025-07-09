@@ -356,7 +356,7 @@ export const HomePage = () => {
   const handleOpenWallet = () => {
     setIsLoading(true);
     setTimeout(() => {
-      window.location.href = 'https://privasui.xyz/chats';
+      window.location.href = 'https://privasui.xyz/pim';
     }, 300);
   };
 
@@ -577,7 +577,7 @@ export const HomePage = () => {
               margin: "40px 0"
             }}>
               <a 
-                href="https://privasui.xyz/chats"
+                href="https://privasui.xyz/pim"
                 onClick={(e) => {
                   e.preventDefault();
                   handleOpenWallet();

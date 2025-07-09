@@ -145,7 +145,7 @@ export const ChatPanel = () => {
         setRedirectCounter((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
-            navigate(`/${RouteNames.Chats}`);
+            navigate(`/${RouteNames.Pim}`);
             return 0;
           }
           return prev - 1;
@@ -196,7 +196,7 @@ export const ChatPanel = () => {
       <InvalidAddressMessage
         address={recipientAddress}
         redirectCounter={redirectCounter}
-        onNavigateToChats={() => navigate(`/${RouteNames.Chats}`)}
+        onNavigateToChats={() => navigate(`/${RouteNames.Pim}`)}
       />
     );
   }
@@ -209,7 +209,7 @@ export const ChatPanel = () => {
       <ChatPanelHeader
         key={`header-${updateTrigger}`}
         recipientAddress={recipientAddress}
-        onBackClick={() => navigate(`/${RouteNames.Chats}`)}
+        onBackClick={() => navigate(`/${RouteNames.Pim}`)}
       />
 
       {/* Main content container */}

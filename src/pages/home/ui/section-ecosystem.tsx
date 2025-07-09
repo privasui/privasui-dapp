@@ -85,7 +85,7 @@ const OpenButton = ({ type }: { type?: string }) => {
   
   return (
     <a 
-      href="https://privasui.xyz/chats" 
+      href="https://privasui.xyz/pim" 
       target="_blank"
       rel="noopener noreferrer"
       style={{...commonButtonStyle, WebkitFontSmoothing: 'none', MozOsxFontSmoothing: 'none'}}

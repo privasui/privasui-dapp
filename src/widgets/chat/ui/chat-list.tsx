@@ -157,11 +157,12 @@ export const ChatList = () => {
 
   const onSubmit = (values: FormValues) => {
     // If it's a piNS name and we have the address, use that
-    if (values.address.startsWith("@") && piNSAddress) {
-      navigate(`/chats/${piNSAddress}`);
-    } else if (!values.address.startsWith("@")) {
+    if (piNSAddress) {
+      console.log("Navigating with piNS address:", piNSAddress);
+      navigate(`/pim/${piNSAddress}`);
+    } else {
       // Regular Sui address
-      navigate(`/chats/${values.address.trim()}`);
+      navigate(`/pim/${values.address.trim()}`);
     }
   };
 
@@ -171,7 +172,7 @@ export const ChatList = () => {
     let nameToRegister = inputValue.substring(1, inputValue.length - 3); // Remove @ and .pi
     
     // Navigate to buy-pins page
-    navigate(`/buy-pins?name=${nameToRegister}`);
+    navigate(`/pins?name=${nameToRegister}`);
   };
 
   let content: ReactNode;

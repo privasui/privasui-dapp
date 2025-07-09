@@ -17,11 +17,11 @@ export enum RouteNames {
   Connect = "connect",
   CreateProfile = "create-profile",
   ImportAccount = "import-account",
-  Chats = "chats",
+  Pim = "pim",
   ReceipentAddress = ":receipentAddress",
   Accounts = "accounts",
   CreateAccount = "create-account",
-  BuyPiNS = "buy-pins",
+  PiNS = "pins",
 }
 
 export const AppRoutes = () => {
@@ -32,7 +32,7 @@ export const AppRoutes = () => {
           <Route path={RouteNames.Home} element={<HomePage />} />
           <Route element={<AccountLayout />}>
             <Route
-              path={`${RouteNames.Chats}/${RouteNames.ReceipentAddress}`}
+              path={`${RouteNames.Pim}/${RouteNames.ReceipentAddress}`}
               element={<ChatPanel />}
             />
             <Route path={RouteNames.Connect} element={<Connect />} />
@@ -50,8 +50,8 @@ export const AppRoutes = () => {
               path={RouteNames.CreateProfile}
               element={<CreateProfile />}
             />
-            <Route path={RouteNames.Chats} element={<ChatListPage />} />
-            <Route path={RouteNames.BuyPiNS} element={<PiNSBuyPage />} />
+            <Route path={RouteNames.Pim} element={<ChatListPage />} />
+            <Route path={RouteNames.PiNS} element={<PiNSBuyPage />} />
           </Route>
           <Route path="*" element={<Navigate to={`/${RouteNames.Home}`} />} />
           <Route path="/" element={<Navigate to={`/${RouteNames.Home}`} />} />
