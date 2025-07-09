@@ -11,7 +11,10 @@ import { fetchAddressBalance } from "@/shared/suipi";
 import { SuiClient } from "@mysten/sui/client";
 import { Drawer } from "@/components/drawer";
 import { RouteNames } from "@/routes";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
+
+// Storage key for the route to return to after account switch
+const RETURN_ROUTE_KEY = "privasui_return_route";
 
 // Create a context to pass drawer navigation functions to children
 export const DrawerContext = createContext<{
@@ -35,6 +38,7 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
     useWalletAccountStore();
   const suiClient = useSuiClient();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Fetch balance when component mounts or active account changes
   useEffect(() => {
@@ -100,7 +104,11 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
     <div className="w-full flex items-center justify-center relative px-4">
       {/* Centered Switch Account button */}
       <button
-        onClick={() => navigate(`/${RouteNames.Accounts}`)}
+        onClick={() => {
+          const returnRoute = location.pathname + location.search;
+          localStorage.setItem(RETURN_ROUTE_KEY, returnRoute);
+          navigate(`/${RouteNames.Accounts}`);
+        }}
         className="flex items-center gap-2 text-white underline font-mono text-base hover:text-primary transition-colors focus:outline-none bg-transparent border-none p-0"
         style={{ boxShadow: "none" }}
       >
@@ -111,26 +119,56 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
       {/* Right side icons within app boundaries */}
       <div className="absolute right-4 flex items-center gap-6">
         <div 
-          className="cursor-pointer hover:opacity-80 flex flex-col items-center gap-1" 
+          className={`flex flex-col items-center gap-1 ${
+            location.pathname.startsWith('/pim') 
+              ? 'cursor-default' 
+              : 'cursor-pointer hover:opacity-80'
+          }`}
           onClick={() => {
-            setShowAccountView(false);
-            window.location.href = `/${RouteNames.Pim}`;
+            if (!location.pathname.startsWith('/pim')) {
+              setShowAccountView(false);
+              window.location.href = `/${RouteNames.Pim}`;
+            }
           }}
           title="Open secure messenger"
         >
-          <MessageSquare size={20} className="text-primary" />
-          <span className="text-xs text-primary font-mono">piM</span>
+          <MessageSquare 
+            size={20} 
+            className={location.pathname.startsWith('/pim') ? 'text-primary' : 'text-white hover:text-primary'} 
+          />
+          <span 
+            className={`text-xs font-mono ${
+              location.pathname.startsWith('/pim') ? 'text-primary' : 'text-white hover:text-primary'
+            }`}
+          >
+            piM
+          </span>
         </div>
         <div 
-          className="cursor-pointer hover:opacity-80 flex flex-col items-center gap-1" 
+          className={`flex flex-col items-center gap-1 ${
+            location.pathname.startsWith('/pins') 
+              ? 'cursor-default' 
+              : 'cursor-pointer hover:opacity-80'
+          }`}
           onClick={() => {
-            setShowAccountView(false);
-            window.location.href = `/${RouteNames.PiNS}`;
+            if (!location.pathname.startsWith('/pins')) {
+              setShowAccountView(false);
+              window.location.href = `/${RouteNames.PiNS}`;
+            }
           }}
           title="piNS - Name service & Market"
         >
-          <Network size={20} className="text-primary" />
-          <span className="text-xs text-primary font-mono">piNS</span>
+          <Network 
+            size={20} 
+            className={location.pathname.startsWith('/pins') ? 'text-primary' : 'text-white hover:text-primary'} 
+          />
+          <span 
+            className={`text-xs font-mono ${
+              location.pathname.startsWith('/pins') ? 'text-primary' : 'text-white hover:text-primary'
+            }`}
+          >
+            piNS
+          </span>
         </div>
         <div 
           className="cursor-not-allowed opacity-50 flex flex-col items-center gap-1" 

@@ -6,6 +6,9 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { AccountListRow } from "./account-list-row";
 
+// Storage key for the route to return to after account switch (should match AccountButton)
+const RETURN_ROUTE_KEY = "privasui_return_route";
+
 export const AccountList = () => {
   const navigate = useNavigate();
   const {
@@ -29,12 +32,13 @@ export const AccountList = () => {
   const handleSelectAccount = async (uid: string) => {
     await setActiveAccountByUid(uid);
 
-    if (uid === activeAccount?.uid) {
-      navigate(`/${RouteNames.Pim}`);
-      return;
-    }
-
-    navigate(`/${RouteNames.Pim}`);
+    // Get the stored return route, or default to /pim
+    const returnRoute = localStorage.getItem(RETURN_ROUTE_KEY) || `/${RouteNames.Pim}`;
+    
+    // Clear the stored route after using it
+    localStorage.removeItem(RETURN_ROUTE_KEY);
+    
+    navigate(returnRoute);
   };
 
   if (isInitializing) {
