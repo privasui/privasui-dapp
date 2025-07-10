@@ -20,10 +20,10 @@ interface PinsNftItemProps {
   piNameData?: PiNameData;
 }
 
-export const PinsNftItem = ({
-  nft,
-  expiration,
-  finalImageUrl,
+export const PinsNftItem = ({ 
+  nft, 
+  expiration, 
+  finalImageUrl, 
   piName,
   onNftSent,
   onPriceChange = onNftSent,
@@ -182,7 +182,7 @@ export const PinsNftItem = ({
               <ShoppingCart size={16} className="text-primary/70" />
             </button>
           ) : null}
-
+          
           {showSendButton && (
             <button
               onClick={handleSendClick}
@@ -194,7 +194,7 @@ export const PinsNftItem = ({
           )}
         </div>
       </div>
-
+      
       {/* Send Drawer */}
       {sendDrawerOpen && (
         <PinsNftSendDrawer
@@ -204,7 +204,7 @@ export const PinsNftItem = ({
           onSuccess={handleSendSuccess}
         />
       )}
-
+      
       {/* Sell Drawer */}
       {sellDrawerOpen && (
         <PinsNftSellDrawer

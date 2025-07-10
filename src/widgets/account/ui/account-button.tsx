@@ -124,12 +124,12 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
               ? 'cursor-default' 
               : 'cursor-pointer hover:opacity-80'
           }`}
-          onClick={() => {
-            if (!location.pathname.startsWith('/pim')) {
-              setShowAccountView(false);
-              window.location.href = `/${RouteNames.Pim}`;
-            }
-          }}
+                      onClick={() => {
+              if (!location.pathname.startsWith('/pim')) {
+                setShowAccountView(false);
+                window.location.href = `/${RouteNames.Pim}`;
+              }
+            }}
           title="Open secure messenger"
         >
           <MessageSquare 
@@ -150,12 +150,12 @@ export const AccountButton: React.FC<AccountButtonProps> = ({
               ? 'cursor-default' 
               : 'cursor-pointer hover:opacity-80'
           }`}
-          onClick={() => {
-            if (!location.pathname.startsWith('/pins')) {
-              setShowAccountView(false);
-              window.location.href = `/${RouteNames.PiNS}`;
-            }
-          }}
+                      onClick={() => {
+              if (!location.pathname.startsWith('/pins')) {
+                setShowAccountView(false);
+                window.location.href = `/${RouteNames.PiNS}`;
+              }
+            }}
           title="piNS - Name service & Market"
         >
           <Network 

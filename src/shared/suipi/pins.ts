@@ -25,7 +25,22 @@ export const invalidatePiNameCache = (name?: string) => {
     // Clear all cache
     Object.keys(piNameCache).forEach(key => delete piNameCache[key]);
     console.log(`🗑️ [PiNS Cache] Invalidated all cache`);
-  }
+}
+};
+
+// Utility functions for SUI/lamports conversion
+export const suiToLamports = (sui: number): number => {
+  return Math.floor(sui * 1_000_000_000);
+};
+
+export const lamportsToSui = (lamports: number | string): number => {
+  const lamportsNum = typeof lamports === 'string' ? parseInt(lamports) : lamports;
+  return lamportsNum / 1_000_000_000;
+};
+
+export const formatSuiPrice = (lamports: number | string): string => {
+  const sui = lamportsToSui(lamports);
+  return sui.toFixed(2);
 };
 
 export const getPiNamePrice = async (suiClient: any, name: string): Promise<string | null> => {
@@ -33,15 +48,24 @@ export const getPiNamePrice = async (suiClient: any, name: string): Promise<stri
     const data = await getPiNameData(suiClient, name);
     if (!data?.data) return null;
 
-    // Price is stored in the data VecMap with key "price"
-    const price = data.data["price"];
+    // Price is stored in the data VecMap with key "price" in lamports
+    const priceLamports = data.data["price"];
     console.log(`💰 [PiNS Debug] Price data for ${name}:`, {
       has_data: !!data.data,
-      raw_price: price,
+      raw_price_lamports: priceLamports,
       data_keys: Object.keys(data.data)
     });
     
-    return price || null;
+    if (!priceLamports) return null;
+    
+    // Convert lamports to SUI and return as formatted string
+    const priceInSui = formatSuiPrice(priceLamports);
+    console.log(`💰 [PiNS Debug] Price conversion for ${name}:`, {
+      lamports: priceLamports,
+      sui: priceInSui
+    });
+    
+    return priceInSui;
   } catch (error) {
     console.error(`❌ [PiNS Debug] Error getting price for ${name}:`, error);
     return null;

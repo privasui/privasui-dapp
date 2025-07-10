@@ -6,11 +6,13 @@ import { useNavigate, useLocation } from "react-router";
 import { RouteNames } from "@/routes";
 import { useState, useEffect, useRef } from "react";
 import { useSuiClient } from "@mysten/dapp-kit";
-import { getNameAddress, fetchPriceConfig, getNameExpiration, calculateNamePrice, getPiNSNameValidationError } from "@/shared/suipi";
+import { getNameAddress, fetchPriceConfig, getNameExpiration, calculateNamePrice, getPiNSNameValidationError, getPiNamePrice } from "@/shared/suipi";
+import { Network } from "lucide-react";
 
 // Import widget components
 import { PinsAvailable } from "@/widgets/pins/ui/pins-available";
 import { PinsNotAvailable } from "@/widgets/pins/ui/pins-not-available";
+import { PinsForSale } from "@/widgets/pins/ui/pins-for-sale";
 import { PinsMyNfts } from "@/widgets/pins/ui/pins-my-nfts";
 
 export const PiNSBuyPage = () => {
@@ -27,6 +29,7 @@ export const PiNSBuyPage = () => {
   const [priceConfig, setPriceConfig] = useState<any>(null);
   const [profilePrice, setProfilePrice] = useState<number>(0);
   const [expirationDate, setExpirationDate] = useState<string | null>(null);
+  const [salePrice, setSalePrice] = useState<string | null>(null);
   const [lastMessageTime, setLastMessageTime] = useState<number>(0);
   const [lastMessage, setLastMessage] = useState<string>("");
   const refreshNftsRef = useRef<(() => void) | null>(null);
@@ -52,6 +55,7 @@ export const PiNSBuyPage = () => {
       setPiNSAddress(null);
       setShowBuyButton(false);
       setExpirationDate(null);
+      setSalePrice(null);
       // Don't clear piNSError here as validation errors should show immediately
     }
   }, [searchName]);
@@ -87,6 +91,7 @@ export const PiNSBuyPage = () => {
         setPiNSAddress(null);
         setShowBuyButton(false);
         setExpirationDate(null);
+        setSalePrice(null);
         return;
       }
 
@@ -102,6 +107,7 @@ export const PiNSBuyPage = () => {
         setPiNSAddress(null);
         setShowBuyButton(false);
         setExpirationDate(null);
+        setSalePrice(null);
         return;
       }
       
@@ -130,6 +136,7 @@ export const PiNSBuyPage = () => {
           setPiNSAddress(null);
           setShowBuyButton(false);
           setExpirationDate(null);
+          setSalePrice(null);
           return;
         }
       }
@@ -178,6 +185,22 @@ export const PiNSBuyPage = () => {
             if (isValidationCancelled) return;
             setExpirationDate(null);
           }
+
+          // Check if name has a sale price set
+          try {
+            const price = await getPiNamePrice(suiClient as any, cleanName);
+            
+            // Check if validation was cancelled during price fetch
+            if (isValidationCancelled) return;
+            
+            setSalePrice(price);
+            console.log(`💰 [PiNS Debug] Sale price for ${cleanName}:`, price);
+          } catch (error) {
+            console.error("Error fetching sale price:", error);
+            // Check if validation was cancelled during price error
+            if (isValidationCancelled) return;
+            setSalePrice(null);
+          }
         } else {
           // Name doesn't exist, show buy option
           setPiNSAddress(null);
@@ -185,6 +208,7 @@ export const PiNSBuyPage = () => {
           setPiNSError("");
           setShowBuyButton(true);
           setExpirationDate(null);
+          setSalePrice(null);
         }
       } catch (error) {
         console.error("Error checking piNS name:", error);
@@ -192,6 +216,7 @@ export const PiNSBuyPage = () => {
         if (isValidationCancelled) return;
         setPiNSError("Error checking availability");
         setShowBuyButton(false);
+        setSalePrice(null);
       } finally {
         setIsCheckingPiNS(false);
       }
@@ -223,7 +248,7 @@ export const PiNSBuyPage = () => {
 
   const handleChatWithOwner = () => {
     if (piNSAddress) {
-      navigate(`/pim/${piNSAddress}`);
+              navigate(`/pim/${piNSAddress}`);
     }
   };
 
@@ -277,7 +302,12 @@ export const PiNSBuyPage = () => {
       header={
         <PrivasuiHeader 
           onClick={() => navigate(`/${RouteNames.Home}`)} 
-          title="Privasui / piNS"
+          title={
+            <>
+              <Network size={20} className="text-primary" />
+              <span>Privasui / piNS</span>
+            </>
+          }
         >
           <AccountButton />
         </PrivasuiHeader>
@@ -318,14 +348,31 @@ export const PiNSBuyPage = () => {
                     />
                   )}
                   
-                  {/* Already Registered Card - Using PinsNotAvailable widget */}
+                  {/* Already Registered Cards */}
                   {piNSAddress && piNSAddress !== "suggestion" && (
-                    <PinsNotAvailable 
-                      searchName={searchName}
-                      piNSAddress={piNSAddress}
-                      expirationDate={expirationDate}
-                      onChat={handleChatWithOwner}
-                    />
+                    <>
+                      {/* Available for Sale Card - Using PinsForSale widget when price is set */}
+                      {salePrice && (
+                        <PinsForSale 
+                          searchName={searchName}
+                          piNSAddress={piNSAddress}
+                          expirationDate={expirationDate}
+                          salePrice={salePrice}
+                          onChat={handleChatWithOwner}
+                          onPurchaseSuccess={handleRegistrationSuccess}
+                        />
+                      )}
+                      
+                      {/* Not Available Card - Using PinsNotAvailable widget when no price is set */}
+                      {!salePrice && (
+                        <PinsNotAvailable 
+                          searchName={searchName}
+                          piNSAddress={piNSAddress}
+                          expirationDate={expirationDate}
+                          onChat={handleChatWithOwner}
+                        />
+                      )}
+                    </>
                   )}
                 </div>
               ) : (

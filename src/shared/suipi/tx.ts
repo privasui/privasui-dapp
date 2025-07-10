@@ -186,6 +186,46 @@ export const createNameRegistrationTx = async (
   return tx;
 }
 
+// Create transaction object for PiNS name purchase (without executing it)
+export const createBuyPiNameTx = async (
+  client: SuiClient,
+  name: string,
+  price: number,
+): Promise<Transaction> => {
+  const tx = new Transaction();
+
+  console.log("🔍 [createBuyPiNameTx] Creating buy transaction:", {
+    name,
+    price,
+    gasBudget: TX_GAS_BUDGET_DEFAULT
+  });
+
+  // Set gas budget (price + gas for the transaction)
+  tx.setGasBudget(price + TX_GAS_BUDGET_DEFAULT);
+
+  // Split payment coin from gas
+  const [paymentCoin] = tx.splitCoins(tx.gas, [tx.pure.u64(BigInt(price))]);
+  
+  // Reset gas budget to default (payment is separate)
+  tx.setGasBudget(TX_GAS_BUDGET_DEFAULT);
+
+  // Fetch the pi shared object
+  const piSharedObject = await fetchPiSharedObject(client);
+
+  // Call the buy_piname function
+  tx.moveCall({
+    target: `${PRIVASUI_PACKAGE_ID_LATEST}::app::buy_piname`,
+    arguments: [
+      tx.object('0x6'),                    // clock: &Clock
+      tx.sharedObjectRef(piSharedObject),  // pi: &mut Pi
+      tx.object(paymentCoin),              // payment: Coin<SUI>
+      tx.pure.string(name),                // name: String
+    ]
+  });
+
+  return tx;
+};
+
 // Create transaction object for NFT transfer (without executing it)
 export const createNftTransferTx = (
   recipient: string,
@@ -252,12 +292,21 @@ export const createPiNSTransferTx = async (
 export const createSetPiNameSalePriceTx = async (
   client: SuiClient,
   name: string,
-  price: number,
+  priceInSui: number,
 ): Promise<Transaction> => {
   const tx = new Transaction();
   
   // Set gas budget
   tx.setGasBudget(TX_GAS_BUDGET_DEFAULT);
+  
+  // Convert SUI to lamports (multiply by 1_000_000_000)
+  const priceInLamports = Math.floor(priceInSui * 1_000_000_000);
+  
+  console.log("🔍 [createSetPiNameSalePriceTx] Price conversion:", {
+    priceInSui,
+    priceInLamports,
+    name
+  });
   
   // Fetch the pi shared object
   const piSharedObject = await fetchPiSharedObject(client);
@@ -269,7 +318,7 @@ export const createSetPiNameSalePriceTx = async (
       tx.object('0x6'),                    // clock: &Clock
       tx.sharedObjectRef(piSharedObject),  // pi: &mut Pi
       tx.pure.string(name),                // name: String
-      tx.pure.u64(BigInt(price)),          // price_lamports: u64
+      tx.pure.u64(BigInt(priceInLamports)), // price_lamports: u64
     ]
   });
   

@@ -37,7 +37,7 @@ const formatExpirationDate = (expirationMs: string | undefined): string => {
   if (isNaN(expMs)) {
     console.error("❌ [PiNS Debug] Invalid expiration timestamp:", expirationMs);
     return "Invalid Date";
-  }
+}
 
   // Validate timestamp length and adjust if needed
   const timestampStr = expirationMs.toString();
@@ -110,7 +110,7 @@ export const usePinsBatchData = () => {
 
         const name = String(fields.name).replace('.pi', '');
         console.log(`\n📦 [PiNS] Processing NFT:`, {
-          objectId: nftData.objectId,
+            objectId: nftData.objectId,
           name: name,
           type: nftData.type,
           version: nftData.version,
@@ -123,7 +123,7 @@ export const usePinsBatchData = () => {
           if (!piNameData) {
             console.warn(`⚠️ [PiNS] No PiName data found for ${name}`);
             return null;
-          }
+        }
 
           console.log(`\n⏰ [PiNS Debug] Raw PiName data for ${name}:`, {
             expiration_ms: piNameData.expiration_ms,
@@ -132,20 +132,20 @@ export const usePinsBatchData = () => {
 
           // Format expiration date using the new helper function
           const formattedExpiration = formatExpirationDate(piNameData.expiration_ms);
-
-          // Extract image URL
-          const imageUrl = nft.data?.display?.data?.image_url;
-          const fallbackImage = fields?.image ? 
-            `data:image/svg+xml;base64,${fields.image}` : undefined;
-          const finalImageUrl = imageUrl || fallbackImage || 
-            'https://placehold.co/96x96/4CAF50/FFFFFF?text=piNS';
+        
+        // Extract image URL
+        const imageUrl = nft.data?.display?.data?.image_url;
+        const fallbackImage = fields?.image ? 
+          `data:image/svg+xml;base64,${fields.image}` : undefined;
+        const finalImageUrl = imageUrl || fallbackImage || 
+          'https://placehold.co/96x96/4CAF50/FFFFFF?text=piNS';
 
           const processedNft: PiNSNftData = {
-            objectId: nftData.objectId,
-            name,
+          objectId: nftData.objectId,
+          name,
             piName: name.endsWith('.pi') ? name : `${name}.pi`,
             imageUrl: finalImageUrl,
-            finalImageUrl,
+          finalImageUrl,
             expiration: formattedExpiration,
             version: nftData.version?.toString() || "0",
             salePrice: "10", // Placeholder until sale price feature is implemented

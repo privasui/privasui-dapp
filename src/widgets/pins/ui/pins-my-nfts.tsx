@@ -163,7 +163,7 @@ export const PinsMyNfts = ({
         owner: activeAccount.publicKey,
         options: { showType: true, showContent: true, showDisplay: true },
       });
-
+      
       // Filter and process PiNS NFTs in parallel
       const piNSObjects = resp.data.filter(obj => obj.data?.type === PINS_TYPE);
       console.log(`📦 [MyPins] Found ${piNSObjects.length} PiNS objects`);
@@ -179,7 +179,7 @@ export const PinsMyNfts = ({
       console.log(`✅ [MyPins] Processed ${validNfts.length} valid NFTs`);
       setNfts(validNfts);
       return validNfts; // Return the fetched data
-    } catch (error) {
+          } catch (error) {
       console.error('❌ [MyPins] Error fetching PiNS NFTs:', error);
       setError("Failed to fetch PiNS names");
       setNfts([]);
@@ -188,7 +188,7 @@ export const PinsMyNfts = ({
       setLoading(false);
     }
   }, [activeAccount?.publicKey, suiClient, extractNftData]);
-
+  
   useEffect(() => {
     fetchPiNSNamesAndDisplays();
   }, [fetchPiNSNamesAndDisplays]);

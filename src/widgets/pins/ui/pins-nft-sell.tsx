@@ -27,7 +27,7 @@ interface PinsNftSellProps {
 }
 
 export const PinsNftSell: React.FC<PinsNftSellProps> = ({ 
-  nft,
+  nft, 
   onClose,
   onSuccess
 }) => {
@@ -39,7 +39,7 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
   const [sellSuccess, setSellSuccess] = useState(false);
   const [expiration, setExpiration] = useState<string>("Loading...");
   const { setPrice: setPriceHook, unsetPrice } = usePiNamePriceManagement();
-  
+
   // Extract NFT details
   const nftData = nft.data as any;
   const fields = nftData.content?.fields;
@@ -105,11 +105,30 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
 
   const inputClassName = cn(
     "w-full px-3 py-2 bg-transparent",
-    "text-[#00ff00] font-mono text-lg outline-none",
+    "text-[#00ff00] font-mono text-base outline-none",
     "border-b border-[#00ff00]/20",
     "transition-colors focus:border-[#00ff00]",
     sellError && "border-[#ff4d4d]"
   );
+
+  // Filter input to only allow numbers and decimal point
+  const filterPriceInput = (value: string): string => {
+    // Only allow digits and one decimal point
+    const filtered = value.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = filtered.split('.');
+    if (parts.length > 2) {
+      return parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Limit decimal places to 9
+    if (parts[1] && parts[1].length > 9) {
+      return parts[0] + '.' + parts[1].substring(0, 9);
+    }
+    
+    return filtered;
+  };
 
   // Validate price format (positive number with up to 9 decimal places)
   const isValidPrice = (price: string): boolean => {
@@ -137,9 +156,9 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
         name: cleanName,
         price: parseFloat(price),
         onComplete: async () => {
-          setSellSuccess(true);
+        setSellSuccess(true);
           addToast.success(`Successfully set price for ${piName}`);
-          
+        
           // Wait for refresh to complete before closing
           if (onSuccess) {
             try {
@@ -147,7 +166,7 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
               // Only close after refresh is complete
               if (onClose) {
                 onClose();
-              }
+          }
             } catch (error) {
               console.error("Failed to refresh after setting price:", error);
               // Still close the dialog even if refresh fails
@@ -298,45 +317,50 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
 
       {/* Price Input and Buttons */}
       <div className="space-y-4">
-        {/* Price Input */}
-        <div className="relative">
+      {/* Price Input */}
+      <div className="relative">
           <input
             type="text"
             value={price}
             onChange={(e) => {
-              setPrice(e.target.value);
+              const filteredValue = filterPriceInput(e.target.value);
+              setPrice(filteredValue);
               setSellError("");
             }}
             placeholder="Enter price in SUI"
-            className={inputClassName}
+            className={cn(
+              inputClassName,
+              sellError && "border-[#ff4d4d]" // Add red border if there's an error
+            )}
+            style={{ fontSize: '16px' }} // Prevent iOS zoom and match send NFT input
             disabled={isProcessing}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#00ff00]/50 font-mono">
             SUI
           </div>
-        </div>
+      </div>
 
-        <div className="h-20"></div>
+      <div className="h-20"></div>
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-6">
-          {/* Set Price Button */}
-          <button
-            onClick={handleSetPrice}
+      {/* Set Price Button */}
+        <button
+          onClick={handleSetPrice}
             disabled={isSettingPrice}
-            style={{
-              backgroundColor: "rgba(0, 255, 0, 0.1)",
+          style={{
+            backgroundColor: "rgba(0, 255, 0, 0.1)",
               color: "#00ff00",
-              border: "1px solid rgba(0, 255, 0, 0.5)",
-              padding: "12px 24px",
-              borderRadius: "8px",
+            border: "1px solid rgba(0, 255, 0, 0.5)",
+            padding: "12px 24px",
+            borderRadius: "8px",
               cursor: isSettingPrice ? "not-allowed" : "pointer",
-              fontFamily: "monospace",
-              fontSize: "16px",
-              transition: "all 0.2s ease",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+            fontFamily: "monospace",
+            fontSize: "16px",
+            transition: "all 0.2s ease",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
               opacity: isSettingPrice ? 0.7 : 1,
               width: "100%"
             }}
@@ -363,13 +387,13 @@ export const PinsNftSell: React.FC<PinsNftSellProps> = ({
                   <LoadingSpinner className="text-red-500" />
                   <span>Removing Price...</span>
                 </>
-              ) : (
+          ) : (
                 <>
                   <Trash2 size={16} />
                   <span>Remove Price</span>
                 </>
-              )}
-            </button>
+          )}
+        </button>
           )}
         </div>
 

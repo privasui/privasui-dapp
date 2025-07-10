@@ -124,7 +124,7 @@ export function CreateProfile() {
   useEffect(() => {
     if (!activeAccount || !activeAccount.publicKey) return;
     if (!isProfileFetching && !isProfileLoading && profile) {
-      navigate(`/${RouteNames.Pim}`);
+              navigate(`/${RouteNames.Pim}`);
       return;
     }
   }, [profile, activeAccount, isProfileLoading, isProfileFetching]);

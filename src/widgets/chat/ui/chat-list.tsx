@@ -157,10 +157,9 @@ export const ChatList = () => {
 
   const onSubmit = (values: FormValues) => {
     // If it's a piNS name and we have the address, use that
-    if (piNSAddress) {
-      console.log("Navigating with piNS address:", piNSAddress);
+    if (values.address.startsWith("@") && piNSAddress) {
       navigate(`/pim/${piNSAddress}`);
-    } else {
+    } else if (!values.address.startsWith("@")) {
       // Regular Sui address
       navigate(`/pim/${values.address.trim()}`);
     }
@@ -171,8 +170,8 @@ export const ChatList = () => {
     // We know it ends with .pi because we validate that before showing the buy button
     let nameToRegister = inputValue.substring(1, inputValue.length - 3); // Remove @ and .pi
     
-    // Navigate to buy-pins page
-    navigate(`/pins?name=${nameToRegister}`);
+            // Navigate to pins page
+        navigate(`/pins?name=${nameToRegister}`);
   };
 
   let content: ReactNode;
