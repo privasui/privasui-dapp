@@ -60,10 +60,16 @@ export const getPiNamePrice = async (suiClient: any, name: string): Promise<stri
     
     // Convert lamports to SUI and return as formatted string
     const priceInSui = formatSuiPrice(priceLamports);
+    const priceAsNumber = parseFloat(priceInSui);
+    
     console.log(`💰 [PiNS Debug] Price conversion for ${name}:`, {
       lamports: priceLamports,
-      sui: priceInSui
+      sui: priceInSui,
+      asNumber: priceAsNumber
     });
+    
+    // Return null if price is 0 or negative (no meaningful price set)
+    if (priceAsNumber <= 0) return null;
     
     return priceInSui;
   } catch (error) {
